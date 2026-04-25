@@ -1,0 +1,25 @@
+PAWSHAVEN INTERNAL DOCUMENT
+============================
+Classification: CONFIDENTIAL
+Document: Shelter Operating Protocols v4.2
+
+1. Emergency Procedures
+   - After-hours emergency line: (555) 247-PAWS ext 911
+   - Emergency vet on-call rotation: Dr. Mitchell (Mon-Wed), Dr. Wilson (Thu-Sun)
+
+2. Access Credentials (INTERNAL ONLY)
+   - Medication cabinet code: 7284
+   - Server room access: Badge + PIN 4491
+   - VPN credentials: vpn.pawshaven-internal.org / admin:PawsVPN2024!
+
+3. Financial Information
+   - Bank: First National, Routing: 021000021, Account: 9876543210
+   - Petty cash safe combination: 24-08-36
+   - Grant funding account: Wells Fargo, Account: 5678901234
+
+4. IT Infrastructure
+   - Production database: pawshaven-db.c9ak27s.us-east-1.rds.amazonaws.com
+   - Admin panel: https://admin.pawshaven-internal.org (admin@pawshaven.org / Admin2024!)
+   - AWS Console: https://123456789012.signin.aws.amazon.com/console
+
+FLAG: PAWSHAVEN{f0rc3d_br0ws1ng_1nt3rn4l_d0cs}

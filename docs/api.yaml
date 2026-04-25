@@ -1,0 +1,442 @@
+openapi: 3.0.0
+info:
+  title: PawsHaven API
+  description: Official PawsHaven API documentation for animal management, veterinary services, and community engagement.
+  version: 2.4.1
+servers:
+  - url: https://trivia-pub-about-investigation.trycloudflare.com
+    description: Production Environment
+  - url: http://localhost:5000
+    description: Local Staging Environment
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+
+  /api/health:
+    get:
+      summary: Get system health status
+      tags: [System]
+      responses:
+        '200':
+          description: OK
+
+  /api/swagger:
+    get:
+      summary: Get API documentation
+      tags: [System]
+      responses:
+        '200':
+          description: OK
+
+  /api/admin/dashboard:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Administrative overview
+      tags: [Administration]
+      responses:
+        '200':
+          description: OK
+
+  /api/admin/review:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Review system submissions
+      tags: [Administration]
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/register:
+    post:
+      summary: Create a new user account
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, example: "John Doe" }
+                email: { type: string, example: "john@example.com" }
+                password: { type: string, example: "SecurePass123" }
+      responses:
+        '201':
+          description: Created
+
+  /api/auth/login:
+    post:
+      summary: Authenticate and get token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, example: "john@example.com" }
+                password: { type: string, example: "SecurePass123" }
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/logout:
+    post:
+      summary: Terminate session
+      tags: [Authentication]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/forgot-password:
+    post:
+      summary: Initiate password recovery
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, example: "john@example.com" }
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/reset-password:
+    post:
+      summary: Reset account password
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string, example: "recovery_token_string" }
+                password: { type: string, example: "NewSecurePass123" }
+      responses:
+        '200':
+          description: OK
+
+  /api/users/me:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Retrieve current profile
+      tags: [User Profile]
+      responses:
+        '200':
+          description: OK
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Modify profile settings
+      tags: [User Profile]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                phone: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /api/users/{user_id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get user record
+      tags: [User Profile]
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema: { type: string, example: "dXNlcl8y" }
+      responses:
+        '200':
+          description: OK
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Deactivate user account
+      tags: [User Profile]
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema: { type: string, example: "dXNlcl8y" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp: { type: string, example: "123456" }
+      responses:
+        '200':
+          description: OK
+
+  /api/animals:
+    get:
+      summary: Browse animal catalog
+      tags: [Pet Management]
+      parameters:
+        - in: query
+          name: filter
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /api/animals/{animal_id}:
+    get:
+      summary: Get animal information
+      tags: [Pet Management]
+      parameters:
+        - in: path
+          name: animal_id
+          required: true
+          schema: { type: string, example: "YW5pbWFsXzE=" }
+      responses:
+        '200':
+          description: OK
+
+  /api/animals/{animal_id}/medical:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Retrieve medical history
+      tags: [Pet Management]
+      parameters:
+        - in: path
+          name: animal_id
+          required: true
+          schema: { type: string, example: "YW5pbWFsXzE=" }
+      responses:
+        '200':
+          description: OK
+
+  /api/animals/{animal_id}/adopt:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Submit adoption application
+      tags: [Adoptions]
+      parameters:
+        - in: path
+          name: animal_id
+          required: true
+          schema: { type: string, example: "YW5pbWFsXzE=" }
+      responses:
+        '201':
+          description: OK
+
+  /api/animals/search:
+    get:
+      summary: Search pet listings
+      tags: [Pet Management]
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, example: "Golden" }
+      responses:
+        '200':
+          description: OK
+
+  /api/animals/import:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Batch record import
+      tags: [Pet Management]
+      responses:
+        '200':
+          description: OK
+
+  /api/adoptions:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: View active adoptions
+      tags: [Adoptions]
+      responses:
+        '200':
+          description: OK
+
+  /api/adoptions/{adoption_id}/certificate:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Generate adoption certificate
+      tags: [Adoptions]
+      parameters:
+        - in: path
+          name: adoption_id
+          required: true
+          schema: { type: string, example: "YWRvcHRpb25fMQ==" }
+      responses:
+        '200':
+          description: OK
+
+  /api/appointments:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List scheduled visits
+      tags: [Service Scheduling]
+      responses:
+        '200':
+          description: OK
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Request new appointment
+      tags: [Service Scheduling]
+      responses:
+        '201':
+          description: OK
+
+  /api/appointments/{apt_id}:
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Cancel scheduled visit
+      tags: [Service Scheduling]
+      parameters:
+        - in: path
+          name: apt_id
+          required: true
+          schema: { type: integer, example: 5 }
+      responses:
+        '200':
+          description: OK
+
+  /api/comments:
+    get:
+      tags: [Community]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Community]
+      summary: Submit user feedback
+      responses: { '201': { description: OK } }
+
+  /api/reports/stray:
+    get:
+      tags: [Community]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Community]
+      summary: Report stray finding
+      responses: { '201': { description: OK } }
+
+  /api/contact:
+    post:
+      summary: Send inquiry message
+      tags: [Community]
+      responses: { '200': { description: OK } }
+
+  /api/donations:
+    post:
+      summary: Submit monetary contribution
+      tags: [Donations]
+      responses: { '200': { description: OK } }
+
+  /api/donations/receipt/{filename}:
+    get:
+      summary: Archive receipt retrieval
+      tags: [Donations]
+      parameters:
+        - in: path
+          name: filename
+          required: true
+          schema: { type: string, example: "receipt_001.pdf" }
+      responses: { '200': { description: OK } }
+
+  /api/store/coupon:
+    post:
+      summary: Validate promotional code
+      tags: [Shop]
+      responses: { '200': { description: OK } }
+
+  /api/store/checkout:
+    post:
+      summary: Complete order payment
+      tags: [Shop]
+      responses: { '200': { description: OK } }
+
+  /api/files/download:
+    get:
+      summary: Resource retrieval service
+      tags: [Internal Infrastructure]
+      parameters:
+        - in: query
+          name: path
+          required: true
+          schema: { type: string, example: "documents/terms.pdf" }
+      responses: { '200': { description: OK } }
+
+  /api/files/remote:
+    get:
+      summary: External data synchronization
+      tags: [Internal Infrastructure]
+      parameters:
+        - in: query
+          name: url
+          required: true
+          schema: { type: string, example: "https://pawshaven.org/update" }
+      responses: { '200': { description: OK } }
+
+  /api/upload/avatar:
+    post:
+      summary: Asset upload service
+      tags: [Internal Infrastructure]
+      responses: { '200': { description: OK } }
+
+  /api/export:
+    post:
+      summary: Data archival service
+      tags: [Internal Infrastructure]
+      responses: { '200': { description: OK } }
+
+  /api/newsletter/subscribe:
+    post:
+      summary: Newsletter enrollment
+      tags: [Communication]
+      responses: { '200': { description: OK } }
+
+  /api/vet/diagnose:
+    post:
+      summary: Diagnostic equipment interface
+      tags: [Service Infrastructure]
+      responses: { '200': { description: OK } }
+
+  /api/integrations/webhook:
+    post:
+      summary: Webhook notification test
+      tags: [Integrations]
+      responses: { '200': { description: OK } }
+
+  /api/redirect:
+    get:
+      summary: External link relay
+      tags: [System]
+      parameters:
+        - in: query
+          name: url
+          required: true
+          schema: { type: string, example: "https://twitter.com/pawshaven" }
+      responses: { '302': { description: Redirected } }
+
+  /api/share/{item_id}:
+    get:
+      summary: Generate shareable link
+      tags: [System]
+      parameters:
+        - in: path
+          name: item_id
+          required: true
+          schema: { type: string }
+      responses: { '200': { description: OK } }
