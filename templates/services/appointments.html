@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Appointments — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-md">
+    <h1 class="mb-md">Appointments</h1>
+    <p class="text-secondary mb-xl">Schedule and manage your veterinary appointments.</p>
+    <div class="card mb-xl">
+        <h3 class="card-title mb-md">Schedule New Appointment</h3>
+        <form onsubmit="bookAppointment(event)">
+            <div class="grid-2">
+                <div class="form-group"><label class="form-label">Date</label><input type="date" id="aDate" class="form-input" required></div>
+                <div class="form-group"><label class="form-label">Time</label><input type="time" id="aTime" class="form-input" required></div>
+            </div>
+            <div class="form-group"><label class="form-label">Type</label><select id="aType" class="form-input"><option value="checkup">Wellness Checkup</option><option value="vaccination">Vaccination</option><option value="surgery">Surgery Consultation</option><option value="grooming">Grooming</option><option value="emergency">Emergency</option></select></div>
+            <div class="form-group"><label class="form-label">Notes</label><textarea id="aNotes" class="form-input" rows="2" placeholder="Any specific concerns?"></textarea></div>
+            <button type="submit" class="btn btn-primary">📅 Book Appointment</button>
+        </form>
+    </div>
+    <h2 class="mb-md">All Appointments</h2>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Time</th><th>Type</th><th>Animal</th><th>User</th><th>Status</th><th>Actions</th></tr></thead><tbody id="aptTable"><tr><td colspan="7" class="text-muted">Loading...</td></tr></tbody></table></div></div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function cancelAppointment(id){
+    const confirmed = await confirmAction('Cancel Appointment', 'Are you sure you want to cancel this veterinary visit?', 'Yes, Cancel', 'danger');
+    if(!confirmed) return;
+    const resp = await apiRequest(`/api/appointments/${id}`, {method: 'DELETE'});
+    if(resp.ok){
+        showToast('Appointment cancelled.', 'success');
+        loadApts();
+    } else {
+        showToast(resp.data.error, 'error');
+    }
+}
+async function loadApts(){
+    const resp=await apiRequest('/api/appointments');
+    if(resp.ok){const apts=resp.data.appointments||[];
+    document.getElementById('aptTable').innerHTML=apts.length?apts.map(a=>`<tr><td>${escapeHtml(a.date)}</td><td>${escapeHtml(a.time)}</td><td><span class="badge badge-info">${escapeHtml(a.type)}</span></td><td>${escapeHtml(a.animal_name||'—')}</td><td>${escapeHtml(a.user_name||'—')}</td><td><span class="badge badge-${a.status==='completed'?'success':'green'}">${a.status}</span></td><td><button class="btn btn-danger btn-sm" onclick="cancelAppointment(${a.id})">Cancel</button></td></tr>`).join(''):`<tr><td colspan="7" class="text-muted">No appointments.</td></tr>`;}}
+
+async function bookAppointment(e){e.preventDefault();
+const resp=await apiRequest('/api/appointments',{method:'POST',body:JSON.stringify({date:document.getElementById('aDate').value,time:document.getElementById('aTime').value,type:document.getElementById('aType').value,notes:document.getElementById('aNotes').value})});
+if(resp.ok){showToast('Appointment scheduled!','success');loadApts();}else showToast(resp.data.error,'error');}
+document.addEventListener('DOMContentLoaded',loadApts);
+</script>{% endblock %}

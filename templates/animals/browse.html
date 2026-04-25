@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Adoptable Animals — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content">
+    <div class="container">
+        <div class="section-header" style="text-align:left;">
+            <h1>Adoptable Animals</h1>
+            <p class="text-secondary">Find your perfect companion. Every adoption saves two lives — the animal you adopt and the one who takes its place.</p>
+        </div>
+        <div class="search-bar">
+            <input type="text" class="form-input" id="searchInput" placeholder="Search by name, species, or breed..." oninput="handleSearch()">
+            <button class="btn btn-primary" onclick="handleSearch()">🔍 Search</button>
+        </div>
+        <div class="filter-pills mb-lg">
+            <button class="filter-pill active" onclick="filterSpecies('')">All</button>
+            <button class="filter-pill" onclick="filterSpecies('Dog')">🐕 Dogs</button>
+            <button class="filter-pill" onclick="filterSpecies('Cat')">🐈 Cats</button>
+            <button class="filter-pill" onclick="filterSpecies('Rabbit')">🐇 Rabbits</button>
+            <button class="filter-pill" onclick="filterSpecies('Bird')">🐦 Birds</button>
+        </div>
+        <div class="animal-grid" id="animalGrid"><div class="text-center text-muted">Loading animals...</div></div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+let allAnimals = [];
+async function loadAnimals() {
+    const resp = await apiRequest('/api/animals');
+    if(resp.ok) { allAnimals = resp.data.animals||[]; renderAnimals(allAnimals); }
+}
+
+function renderAnimals(animals) {
+    const grid = document.getElementById('animalGrid');
+    if(!animals.length) { grid.innerHTML='<div class="empty-state"><div class="empty-state-icon">🔍</div><h3>No animals found</h3></div>'; return; }
+    grid.innerHTML = animals.map(a => `
+        <div class="animal-card" onclick="window.location='/animals/${a.encoded_id}'">
+            <div class="animal-card-img">
+                ${a.image_url ? `<img src="${a.image_url}" alt="${escapeHtml(a.name)}" class="animal-img">` : `<div class="animal-placeholder">${a.species==='Dog'?'🐕':a.species==='Cat'?'🐈':a.species==='Rabbit'?'🐇':'🐦'}</div>`}
+                <span class="status-tag status-${a.status}">${a.status.replace('_',' ')}</span>
+            </div>
+            <div class="animal-card-body">
+                <div class="animal-card-name">${escapeHtml(a.name)}</div>
+                <div class="animal-card-meta"><span>${escapeHtml(a.breed)}</span><span>📅 ${escapeHtml(a.age)}</span><span>${a.gender==='Male'?'♂️':'♀️'}</span></div>
+                <div class="animal-card-desc">${escapeHtml(a.description)}</div>
+            </div>
+        </div>`).join('');
+}
+
+async function handleSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if(!q) { renderAnimals(allAnimals); return; }
+    const resp = await apiRequest(`/api/animals/search?q=${encodeURIComponent(q)}`);
+    if(resp.ok) renderAnimals(resp.data.results||[]);
+    else showToast(resp.data.error||'Search failed','error');
+}
+
+function filterSpecies(species) {
+    document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+    event.target.classList.add('active');
+    if(!species) renderAnimals(allAnimals);
+    else renderAnimals(allAnimals.filter(a=>a.species===species));
+}
+
+document.addEventListener('DOMContentLoaded', loadAnimals);
+</script>{% endblock %}

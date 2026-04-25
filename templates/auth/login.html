@@ -1,0 +1,109 @@
+{% set hide_nav = true %}{% set hide_footer = true %}
+{% extends "base.html" %}
+{% block title %}Sign In — PawsHaven{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">🐾 PawsHaven</div>
+            <h2>Welcome back</h2>
+            <p>Sign in to your account</p>
+        </div>
+        <div id="loginError" class="alert alert-error hidden"></div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" class="form-input" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            </div>
+            <div class="flex justify-between items-center mb-lg">
+                <label style="font-size:0.85rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;"><input type="checkbox" style="accent-color:var(--brand-primary);"> Remember me</label>
+                <a href="/forgot-password" style="font-size:0.85rem;">Forgot password?</a>
+            </div>
+            <button type="submit" id="loginBtn" class="btn btn-primary btn-block btn-lg">Sign In</button>
+        </form>
+        
+        <div id="otpSection" class="hidden text-center">
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-color);">Two-Factor Authentication</h3>
+            <p class="text-muted" style="margin-bottom: 1.5rem; font-size: 0.9rem;">Enter the 6-digit code sent to your email.</p>
+            <div class="form-group">
+                <input type="text" id="otpCode" class="form-input" placeholder="000000" maxlength="6" style="letter-spacing: 0.5rem; font-size: 1.5rem; text-align: center; font-weight: bold;">
+            </div>
+            <button onclick="verifyOTP()" class="btn btn-primary btn-block btn-lg mt-md" id="otpBtn">Verify Security Code</button>
+        </div>
+        <div class="auth-footer">Don't have an account? <a href="/register">Create one free →</a></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    setLoading(btn, true);
+
+    const resp = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        })
+    });
+
+    setLoading(btn, false);
+    if (resp.ok) {
+        if (resp.data.requires_2fa) {
+            // SHOW OTP SECTION
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('otpSection').classList.remove('hidden');
+            document.querySelector('.auth-header').classList.add('hidden');
+            document.querySelector('.auth-footer').classList.add('hidden');
+            
+            // Hold the JWT token natively (VULN: The backend gives us the token before OTP checking!)
+            window.sessionLoginToken = resp.data.token; 
+        } else {
+            // Vulnerable bypass! An attacker can manipulate the response intercept, changing requires_2fa to false. 
+            if (resp.data.token) document.cookie = `token=${resp.data.token}; path=/; max-age=86400; SameSite=Lax`;
+            window.location.href = '/dashboard';
+        }
+    } else {
+        errEl.textContent = resp.data.error || 'Login failed.';
+        errEl.classList.remove('hidden');
+    }
+}
+
+async function verifyOTP() {
+    const btn = document.getElementById('otpBtn');
+    const errEl = document.getElementById('loginError');
+    setLoading(btn, true);
+    errEl.classList.add('hidden');
+    
+    const code = document.getElementById('otpCode').value;
+    const resp = await apiRequest('/api/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({
+            email: document.getElementById('email').value,
+            otp: code
+        })
+    });
+
+    setLoading(btn, false);
+
+    if (resp.ok) {
+        // Successful OTP 
+        document.cookie = `token=${window.sessionLoginToken}; path=/; max-age=86400; SameSite=Lax`;
+        window.location.href = '/dashboard';
+    } else {
+        errEl.textContent = resp.data.error || 'Invalid authentication code.';
+        errEl.classList.remove('hidden');
+    }
+}
+</script>
+{% endblock %}

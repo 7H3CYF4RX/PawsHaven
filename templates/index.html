@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}PawsHaven — Give Every Animal a Second Chance{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <h1>Every Paw Deserves<br>a Second Chance 🐾</h1>
+        <p>PawsHaven is a veterinary clinic and rescue shelter dedicated to saving, healing, and rehoming animals in need. Join our mission today.</p>
+        <div class="flex gap-md">
+            <a href="/animals" class="btn btn-white btn-lg">Browse Adoptable Pets</a>
+            <a href="/donate" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.5);">Donate Now</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-value">2,847</div><div class="hero-stat-label">Animals Rescued</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">1,923</div><div class="hero-stat-label">Successfully Adopted</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">412</div><div class="hero-stat-label">Awaiting Homes</div></div>
+            <div class="hero-stat"><div class="hero-stat-value">98%</div><div class="hero-stat-label">Survival Rate</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="section" style="background:var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">What We Do</span>
+            <h2>How PawsHaven Helps</h2>
+            <p>From rescue to forever home — we provide complete care for every animal that comes through our doors.</p>
+        </div>
+        <div class="grid-3">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(45,106,79,0.1);">🏥</div>
+                <h3>Veterinary Care</h3>
+                <p>Full-service veterinary clinic providing vaccinations, surgeries, dental care, and emergency treatment.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(224,122,47,0.1);">🏠</div>
+                <h3>Adoption Services</h3>
+                <p>We carefully match each animal with the perfect family, ensuring lifelong happiness for both.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(58,134,168,0.1);">🚑</div>
+                <h3>Rescue Operations</h3>
+                <p>24/7 rescue response team for injured, abandoned, and stray animals across the county.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(108,92,231,0.1);">📋</div>
+                <h3>Medical Records</h3>
+                <p>Complete digital medical history for every animal, accessible to adopters and veterinarians.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(193,67,61,0.1);">❤️</div>
+                <h3>Community Support</h3>
+                <p>Report stray animals, volunteer for rescue missions, and help us make a difference.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(45,106,79,0.1);">📊</div>
+                <h3>Data & Reports</h3>
+                <p>Generate reports, export data, and integrate with external systems for better animal welfare.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Animals -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Meet Our Residents</span>
+            <h2>Featured Animals</h2>
+            <p>These lovable souls are looking for their forever homes. Could you be the one?</p>
+        </div>
+        <div class="animal-grid" id="featuredAnimals">
+            <div class="animal-card" onclick="window.location='/animals'">
+                <div class="animal-card-img"><img src="/static/img/animals/dog1.jpg" alt="Luna"><span class="status-tag status-available">Available</span></div>
+                <div class="animal-card-body"><div class="animal-card-name">Luna</div><div class="animal-card-meta"><span>🐕 Golden Retriever</span><span>📅 2 years</span></div><div class="animal-card-desc">Friendly and playful golden retriever rescued from a puppy mill.</div></div>
+            </div>
+            <div class="animal-card" onclick="window.location='/animals'">
+                <div class="animal-card-img"><img src="/static/img/animals/cat1.jpg" alt="Milo"><span class="status-tag status-available">Available</span></div>
+                <div class="animal-card-body"><div class="animal-card-name">Milo</div><div class="animal-card-meta"><span>🐈 Tabby</span><span>📅 1 year</span></div><div class="animal-card-desc">Affectionate tabby who loves to cuddle. Great with children.</div></div>
+            </div>
+            <div class="animal-card" onclick="window.location='/animals'">
+                <div class="animal-card-img"><img src="/static/img/animals/dog2.jpg" alt="Rocky"><span class="status-tag status-medical_hold">Medical Hold</span></div>
+                <div class="animal-card-body"><div class="animal-card-name">Rocky</div><div class="animal-card-meta"><span>🐕 German Shepherd</span><span>📅 4 years</span></div><div class="animal-card-desc">Recovering from leg surgery. Needs a patient and loving home.</div></div>
+            </div>
+            <div class="animal-card" onclick="window.location='/animals'">
+                <div class="animal-card-img"><img src="/static/img/animals/cat2.jpg" alt="Bella"><span class="status-tag status-available">Available</span></div>
+                <div class="animal-card-body"><div class="animal-card-name">Bella</div><div class="animal-card-meta"><span>🐈 Persian</span><span>📅 3 years</span></div><div class="animal-card-desc">Elegant persian cat with a calm temperament. Prefers quiet environments.</div></div>
+            </div>
+        </div>
+        <div class="text-center mt-xl"><a href="/animals" class="btn btn-primary btn-lg">View All Adoptable Animals →</a></div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section" style="background:var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Happy Families</span>
+            <h2>What Adopters Say</h2>
+        </div>
+        <div class="grid-3">
+            <div class="testimonial-card">
+                <div class="testimonial-text">"We adopted Daisy two years ago and she's been the best addition to our family. PawsHaven made the process so smooth and caring."</div>
+                <div class="testimonial-author"><div class="testimonial-avatar">J</div><div><div class="testimonial-name">Jennifer & Mark</div><div class="testimonial-role">Adopted Daisy in 2022</div></div></div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">"The veterinary care at PawsHaven is outstanding. Dr. Mitchell saved our rescue cat's life after a severe infection. Forever grateful."</div>
+                <div class="testimonial-author"><div class="testimonial-avatar">S</div><div><div class="testimonial-name">Sarah Chen</div><div class="testimonial-role">Volunteer & Adopter</div></div></div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">"I donate monthly because I know every dollar goes directly to animal care. Their transparency and dedication is unmatched."</div>
+                <div class="testimonial-author"><div class="testimonial-avatar">R</div><div><div class="testimonial-name">Robert Davis</div><div class="testimonial-role">Monthly Donor since 2020</div></div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="background:var(--bg-hero);color:white;text-align:center;">
+    <div class="container">
+        <h2 style="font-size:2.2rem;color:white;margin-bottom:var(--space-md);">Ready to Make a Difference?</h2>
+        <p style="font-size:1.1rem;opacity:0.9;max-width:500px;margin:0 auto var(--space-xl);">Whether you adopt, donate, or volunteer — every action saves a life.</p>
+        <div class="flex justify-center gap-md">
+            <a href="/register" class="btn btn-white btn-lg">Create Account</a>
+            <a href="/donate" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.5);">Donate Now</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

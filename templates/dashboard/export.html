@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Export Data — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-sm">
+    <h1 class="mb-md">📦 Data Export</h1>
+    <p class="text-secondary mb-xl">Export your data in various formats.</p>
+    <div class="card">
+        <div class="form-group"><label class="form-label">Format</label>
+            <select id="expFormat" class="form-input"><option value="json">JSON (Standard)</option><option value="legacy">Legacy (Pickle — for backward compatibility)</option></select>
+            <p class="form-hint">Legacy format supports importing data from PawsHaven v1.x backups.</p></div>
+        <div class="form-group"><label class="form-label">Data (for Legacy import, paste Base64-encoded data)</label>
+            <textarea id="expData" class="form-input mono" rows="5" placeholder="Paste data here..."></textarea></div>
+        <button onclick="handleExport()" id="expBtn" class="btn btn-primary">📥 Process</button>
+        <div id="expResult" class="mt-lg hidden"><pre class="code-block" id="expOutput"></pre></div>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function handleExport(){const btn=document.getElementById('expBtn');setLoading(btn,true);
+const resp=await apiRequest('/api/export',{method:'POST',body:JSON.stringify({format:document.getElementById('expFormat').value,data:document.getElementById('expData').value})});
+setLoading(btn,false);document.getElementById('expResult').classList.remove('hidden');
+document.getElementById('expOutput').textContent=JSON.stringify(resp.data,null,2);}
+</script>{% endblock %}

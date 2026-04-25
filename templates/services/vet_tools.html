@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Vet Diagnostics — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-sm">
+    <h1 class="mb-md">🩺 Veterinary Diagnostic Tool</h1>
+    <p class="text-secondary mb-xl">Scan microchip identifiers and check device connectivity for our vet equipment network.</p>
+    <div class="card">
+        <form onsubmit="runDiagnosis(event)">
+            <div class="form-group"><label class="form-label">Device / Chip Identifier</label><input type="text" id="deviceId" class="form-input" placeholder="Enter Device or Microchip ID" required></div>
+            <button type="submit" id="diagBtn" class="btn btn-primary">🔍 Run Scan</button>
+        </form>
+        <div id="diagResult" class="mt-lg hidden"><h3 class="mb-sm">Scan Results</h3><pre class="code-block" id="diagOutput"></pre></div>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function runDiagnosis(e){e.preventDefault();const btn=document.getElementById('diagBtn');setLoading(btn,true);
+const resp=await apiRequest('/api/vet/diagnose',{method:'POST',body:JSON.stringify({device_id:document.getElementById('deviceId').value})});
+setLoading(btn,false);const el=document.getElementById('diagResult');el.classList.remove('hidden');
+document.getElementById('diagOutput').textContent=resp.ok?`Status: ${resp.data.status}\n\nOutput:\n${resp.data.output}\n${resp.data.errors?'Errors:\n'+resp.data.errors:''}`:`Error: ${resp.data.error}`;}
+</script>{% endblock %}

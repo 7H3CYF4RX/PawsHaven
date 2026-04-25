@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Report Stray Animal — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container">
+    <div class="grid-2" style="gap:var(--space-2xl)">
+        <div>
+            <h1 class="mb-md">Stray Animal Reports</h1>
+            <p class="text-secondary mb-xl">Report stray or injured animals so our rescue team can respond.</p>
+            <div class="card">
+                <form onsubmit="submitReport(event)">
+                    <div class="form-group"><label class="form-label">Location</label><input type="text" id="rLocation" class="form-input" placeholder="Street, park, or landmark" required></div>
+                    <div class="grid-2">
+                        <div class="form-group"><label class="form-label">Animal Type</label><select id="rType" class="form-input"><option>Dog</option><option>Cat</option><option>Bird</option><option>Other</option></select></div>
+                        <div class="form-group"><label class="form-label">Urgency</label><select id="rUrgency" class="form-input"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent — Injured</option></select></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Description</label><textarea id="rDesc" class="form-input" rows="4" required placeholder="Describe the animal, its condition, and exact location..."></textarea></div>
+                    <button type="submit" id="reportBtn" class="btn btn-primary">📢 Submit Report</button>
+                </form>
+            </div>
+        </div>
+        <div>
+            <h2 class="mb-md">Recent Reports</h2>
+            <div id="reportsList"><p class="text-muted">Loading...</p></div>
+        </div>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function loadReports() {
+    const resp = await apiRequest('/api/reports/stray');
+    if(resp.ok) {
+        const reports = resp.data.reports||[];
+        document.getElementById('reportsList').innerHTML = reports.length ? reports.map(r=>`
+            <div class="card mb-md">
+                <div class="flex justify-between items-center mb-sm">
+                    <span class="badge badge-${r.urgency==='urgent'?'danger':r.urgency==='high'?'warning':'info'}">${r.urgency}</span>
+                    <span class="text-muted" style="font-size:0.8rem">${r.created_at||''}</span>
+                </div>
+                <p class="mb-sm"><strong>📍 ${escapeHtml(r.location)}</strong> · ${escapeHtml(r.animal_type)}</p>
+                <div class="card-desc">${r.description}</div>
+                <p class="text-muted mt-sm" style="font-size:0.8rem">Reported by ${escapeHtml(r.reporter_name||'Anonymous')}</p>
+            </div>`).join('') : '<div class="empty-state"><h3>No reports yet</h3></div>';
+    }
+}
+
+async function submitReport(e) {
+    e.preventDefault(); const btn=document.getElementById('reportBtn'); setLoading(btn,true);
+    const resp = await apiRequest('/api/reports/stray', { method:'POST', body:JSON.stringify({
+        location: document.getElementById('rLocation').value,
+        animal_type: document.getElementById('rType').value,
+        urgency: document.getElementById('rUrgency').value,
+        description: document.getElementById('rDesc').value
+    })});
+    setLoading(btn,false);
+    if(resp.ok) { showToast(resp.data.message,'success'); document.querySelector('form').reset(); loadReports(); }
+    else showToast(resp.data.error,'error');
+}
+document.addEventListener('DOMContentLoaded', loadReports);
+</script>{% endblock %}

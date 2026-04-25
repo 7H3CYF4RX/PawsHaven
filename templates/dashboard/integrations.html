@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Integrations — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-sm">
+    <h1 class="mb-md">🔗 External Services</h1>
+    <p class="text-secondary mb-xl">Connect PawsHaven with external veterinary record systems.</p>
+    <div class="card">
+        <h3 class="card-title mb-md">Test Service Connection</h3>
+        <form onsubmit="testWebhook(event)">
+            <div class="form-group"><label class="form-label">Service Endpoint</label><input type="url" id="whUrl" class="form-input" placeholder="find vet records" required></div>
+            <button type="submit" id="whBtn" class="btn btn-primary">Verify Connection</button>
+        </form>
+        <div id="whResult" class="mt-lg hidden"><h3 class="mb-sm">Connection Result</h3><pre class="code-block" id="whOutput"></pre></div>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function testWebhook(e){e.preventDefault();const btn=document.getElementById('whBtn');setLoading(btn,true);
+const resp=await apiRequest('/api/integrations/webhook',{method:'POST',body:JSON.stringify({url:document.getElementById('whUrl').value})});
+setLoading(btn,false);const el=document.getElementById('whResult');el.classList.remove('hidden');
+document.getElementById('whOutput').textContent=resp.ok?JSON.stringify(resp.data,null,2):JSON.stringify(resp.data,null,2);}
+</script>{% endblock %}

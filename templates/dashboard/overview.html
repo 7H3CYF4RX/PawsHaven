@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content">
+    <div class="container">
+        <h1 class="mb-md">Dashboard</h1>
+        <p class="text-secondary mb-xl">Welcome back! Here's your activity overview.</p>
+
+        <div class="dash-grid" id="dashStats">
+            <div class="dash-stat"><div class="dash-stat-icon">🐾</div><div class="dash-stat-value" id="statAnimals">—</div><div class="dash-stat-label">Animals</div></div>
+            <div class="dash-stat"><div class="dash-stat-icon">📅</div><div class="dash-stat-value" id="statApts">—</div><div class="dash-stat-label">Appointments</div></div>
+            <div class="dash-stat"><div class="dash-stat-icon">💝</div><div class="dash-stat-value" id="statDonations">—</div><div class="dash-stat-label">Donations</div></div>
+            <div class="dash-stat"><div class="dash-stat-icon">📋</div><div class="dash-stat-value" id="statReports">—</div><div class="dash-stat-label">Reports</div></div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Quick Actions</h3></div>
+                <div class="flex flex-col gap-sm">
+                    <a href="/animals" class="btn btn-secondary btn-block" style="justify-content:flex-start">🐕 Browse Animals</a>
+                    <a href="/reports/stray" class="btn btn-secondary btn-block" style="justify-content:flex-start">📢 Report Stray Animal</a>
+                    <a href="/appointments/new" class="btn btn-secondary btn-block" style="justify-content:flex-start">📅 Schedule Appointment</a>
+                    <a href="/donate" class="btn btn-secondary btn-block" style="justify-content:flex-start">💝 Make a Donation</a>
+                    <a href="/newsletter" class="btn btn-secondary btn-block" style="justify-content:flex-start">📧 Newsletter</a>
+                    <a href="/vet/diagnose" class="btn btn-secondary btn-block" style="justify-content:flex-start">🩺 Vet Diagnostic Tool</a>
+                    <a href="/animals/import" class="btn btn-secondary btn-block" style="justify-content:flex-start">📥 Import Animal Data</a>
+                    <a href="/integrations" class="btn btn-secondary btn-block" style="justify-content:flex-start">🔗 Integrations</a>
+                    <a href="/community" class="btn btn-secondary btn-block" style="justify-content:flex-start">💬 Community Board</a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Your Profile</h3></div>
+                <div id="profileInfo" class="text-secondary">Loading...</div>
+                <a href="/dashboard/profile" class="btn btn-outline btn-sm mt-lg">Edit Profile →</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const [animals, apts, reports, donations, profile] = await Promise.all([
+        apiRequest('/api/animals'),
+        apiRequest('/api/appointments'),
+        apiRequest('/api/reports/stray'),
+        apiRequest('/api/donations'),
+        apiRequest('/api/users/me')
+    ]);
+    if(animals.ok)   document.getElementById('statAnimals').textContent   = animals.data.total || 0;
+    if(apts.ok)      document.getElementById('statApts').textContent      = apts.data.total || 0;
+    if(reports.ok)   document.getElementById('statReports').textContent   = reports.data.reports?.length || 0;
+    if(donations.ok) document.getElementById('statDonations').textContent = '$' + (donations.data.total || 0).toFixed(2);
+    else             document.getElementById('statDonations').textContent = '$0.00';
+    if(profile.ok) {
+        const u = profile.data.user;
+        document.getElementById('profileInfo').innerHTML = `
+            <p><strong>${escapeHtml(u.name)}</strong></p>
+            <p>${escapeHtml(u.email)}</p>
+            <p class="badge badge-green mt-sm">${u.role}</p>
+            <p class="mt-sm text-muted" style="font-size:0.82rem;">ID: ${u.encoded_id}</p>`;
+    }
+});
+</script>{% endblock %}
+

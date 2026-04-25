@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Import Animals — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-sm">
+    <h1 class="mb-md">Import Animal Data</h1>
+    <p class="text-secondary mb-xl">Upload animal records in XML format for batch import.</p>
+    <div class="card">
+        <div class="form-group"><label class="form-label">XML Data</label>
+        <textarea id="xmlData" class="form-input mono" rows="12" placeholder='<?xml version="1.0"?>
+<animals>
+  <animal>
+    <name>Buddy</name>
+    <species>Dog</species>
+    <breed>Labrador</breed>
+    <description>Friendly lab</description>
+  </animal>
+</animals>'></textarea>
+        <p class="form-hint">Paste your XML animal data above. Supports batch import.</p></div>
+        <button onclick="importAnimals()" id="importBtn" class="btn btn-primary">📥 Import</button>
+        <div id="importResult" class="mt-lg hidden"></div>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function importAnimals(){const btn=document.getElementById('importBtn');setLoading(btn,true);
+const xml=document.getElementById('xmlData').value;
+const resp=await fetch('/api/animals/import',{method:'POST',headers:{'Content-Type':'application/xml','Authorization':'Bearer '+getToken()},body:xml});
+const data=await resp.json();setLoading(btn,false);
+const el=document.getElementById('importResult');el.classList.remove('hidden');
+el.innerHTML=resp.ok?`<div class="alert alert-success">${data.message}</div><pre class="code-block">${JSON.stringify(data.imported,null,2)}</pre>`:`<div class="alert alert-error">${data.error}</div>`;}
+</script>{% endblock %}

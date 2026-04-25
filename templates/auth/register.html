@@ -1,0 +1,70 @@
+{% set hide_nav = true %}{% set hide_footer = true %}
+{% extends "base.html" %}
+{% block title %}Create Account — PawsHaven{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">🐾 PawsHaven</div>
+            <h2>Create your account</h2>
+            <p>Join our community and help save lives</p>
+        </div>
+        <div id="regError" class="alert alert-error hidden"></div>
+        <form id="regForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label class="form-label" for="name">Full Name</label>
+                <input type="text" id="name" class="form-input" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" class="form-input" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Choose a password" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="confirm">Confirm Password</label>
+                <input type="password" id="confirm" class="form-input" placeholder="Repeat password" required>
+            </div>
+            <button type="submit" id="regBtn" class="btn btn-primary btn-block btn-lg">Create Account</button>
+        </form>
+        <div class="auth-footer">Already have an account? <a href="/login">Sign in →</a></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('regBtn');
+    const errEl = document.getElementById('regError');
+    errEl.classList.add('hidden');
+
+    const pw = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    if (pw !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); return; }
+
+    setLoading(btn, true);
+    const resp = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            password: pw
+        })
+    });
+    setLoading(btn, false);
+
+    if (resp.ok) {
+        if (resp.data.token) document.cookie = `token=${resp.data.token}; path=/; max-age=86400; SameSite=Lax`;
+        window.location.href = '/dashboard';
+    } else {
+        errEl.textContent = resp.data.error || 'Registration failed.';
+        errEl.classList.remove('hidden');
+    }
+}
+</script>
+{% endblock %}

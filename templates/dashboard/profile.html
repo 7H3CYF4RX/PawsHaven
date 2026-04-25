@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Profile Settings — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content">
+    <div class="container-md">
+        <h1 class="mb-md">Profile Settings</h1>
+        <p class="text-secondary mb-xl">Manage your account information.</p>
+        <div id="successMsg" class="alert alert-success hidden"></div>
+        <div class="card">
+            <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                <div class="grid-2">
+                    <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="pName" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" id="pEmail" class="form-input" disabled></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label class="form-label">Phone</label><input type="text" id="pPhone" class="form-input" placeholder="555-0100"></div>
+                    <div class="form-group"><label class="form-label">Address</label><input type="text" id="pAddress" class="form-input" placeholder="123 Main St"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Bio</label><textarea id="pBio" class="form-input" rows="3" placeholder="Tell us about yourself..."></textarea></div>
+                
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 2rem 0;">
+                <h3 class="mb-sm">Security</h3>
+                <div class="form-group mb-md">
+                    <label class="form-label" style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" id="p2FA" style="width: 18px; height: 18px; accent-color: var(--brand-primary);">
+                        Enable Two-Factor Authentication (OTP)
+                    </label>
+                    <p class="form-hint" style="margin-left: 28px;">Requires a 6-digit Authenticator code during sign-in.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Avatar</label>
+                    <input type="file" id="avatarFile" class="form-input" accept="image/*">
+                    <p class="form-hint">Upload a profile photo (JPG, PNG, SVG)</p>
+                </div>
+                <button type="submit" id="saveBtn" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+
+        <div class="card mt-xl" style="border-top: 4px solid #ef4444;">
+            <h3 class="mb-sm text-danger">Danger Zone</h3>
+            <p class="text-secondary mb-md">Once you delete your account, there is no going back. Please be certain.</p>
+            <button onclick="handleDeleteAccount()" class="btn btn-danger btn-ghost">Delete Account</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom OTP Modal -->
+<div id="otpModalOverlay" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.3s ease;">
+    <div id="otpModal" style="background: white; border-radius: 12px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+        <center>
+            <div style="background: #e0f2fe; color: #0284c7; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h3 id="otpModalTitle" style="margin-bottom: 0.75rem; color: #1f2937;">Action Verification</h3>
+            <p id="otpModalDesc" class="text-secondary" style="margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;">Please enter the 6-digit verification code sent to your email to confirm this action.</p>
+        </center>
+        <div class="form-group">
+            <input type="text" id="modalOtpInput" class="form-input" placeholder="000000" maxlength="6" style="letter-spacing: 0.5rem; font-size: 1.5rem; text-align: center; font-weight: bold; background: #f3f4f6; border-color: transparent;">
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button id="modalCancelBtn" type="button" class="btn" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none;">Cancel</button>
+            <button id="modalVerifyBtn" type="button" class="btn btn-primary" style="flex: 1;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}<script>
+function requestOTPModal(title, description, buttonText) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('otpModalOverlay');
+        const modal = document.getElementById('otpModal');
+        const input = document.getElementById('modalOtpInput');
+        const cancelBtn = document.getElementById('modalCancelBtn');
+        const verifyBtn = document.getElementById('modalVerifyBtn');
+        const titleEl = document.getElementById('otpModalTitle');
+        const descEl = document.getElementById('otpModalDesc');
+
+        if(title) titleEl.textContent = title;
+        if(description) descEl.textContent = description;
+        if(buttonText) verifyBtn.textContent = buttonText;
+        
+        input.value = '';
+        overlay.classList.remove('hidden');
+        
+        // Trigger CSS transitions
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+            modal.style.transform = 'translateY(0)';
+        });
+
+        const cleanup = () => {
+            overlay.style.opacity = '0';
+            modal.style.transform = 'translateY(20px)';
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+            cancelBtn.onclick = null;
+            verifyBtn.onclick = null;
+        };
+
+        cancelBtn.onclick = (e) => { e.preventDefault(); cleanup(); resolve(null); };
+        verifyBtn.onclick = (e) => { e.preventDefault(); cleanup(); resolve(input.value.trim()); };
+    });
+}
+document.addEventListener('DOMContentLoaded', async () => {
+    const resp = await apiRequest('/api/users/me');
+    if(resp.ok) {
+        const u = resp.data.user;
+        document.getElementById('pName').value = u.name||'';
+        document.getElementById('pEmail').value = u.email||'';
+        document.getElementById('pPhone').value = u.phone||'';
+        document.getElementById('pAddress').value = u.address||'';
+        document.getElementById('pBio').value = u.bio||'';
+        document.getElementById('p2FA').checked = u.two_factor_enabled == 1;
+        window.original2FA = u.two_factor_enabled == 1;
+        window.userEncodedId = u.encoded_id;
+    }
+});
+
+async function handleDeleteAccount() {
+    const confirmed = await confirmAction('Delete Account', 'Are you sure you want to PERMANENTLY delete your account? This cannot be undone.', 'Delete Forever', 'danger');
+    if(!confirmed) return;
+    
+    // Request OTP first
+    await apiRequest('/api/auth/request-otp', { method: 'POST' });
+    const otp = await requestOTPModal('Delete Account', 'Please enter the verification code to permanently delete your account.', 'Verify & Delete');
+    
+    if (!otp) return;
+
+    const resp = await apiRequest(`/api/users/${window.userEncodedId}`, { 
+        method: 'DELETE',
+        body: JSON.stringify({ otp: otp })
+    });
+    if(resp.ok) {
+        showToast('Your account was deleted.', 'success');
+        logout();
+    } else {
+        showToast(resp.data.error, 'error');
+    }
+}
+
+async function handleProfileUpdate(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    
+    // Check if 2FA is being disabled
+    const current2FA = document.getElementById('p2FA').checked;
+    if (window.original2FA === true && current2FA === false) {
+        // Request OTP
+        await apiRequest('/api/auth/request-otp', { method: 'POST' });
+        const otp = await requestOTPModal('Disable 2FA', 'Please enter the verification code to disable two-factor authentication.', 'Verify & Disable');
+        
+        if (!otp) {
+            document.getElementById('p2FA').checked = true; // Revert visually
+            return;
+        }
+
+        const email = document.getElementById('pEmail').value;
+        const vResp = await apiRequest('/api/auth/verify-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email: email, otp: otp })
+        });
+        
+        if (!vResp.ok) {
+            showToast('Invalid OTP. 2FA was not disabled.', 'error');
+            document.getElementById('p2FA').checked = true; // Revert visually
+            return;
+        }
+    }
+
+    setLoading(btn, true);
+
+    let avatarUrl = '';
+    // Upload avatar first if provided
+    const fileInput = document.getElementById('avatarFile');
+    if (fileInput.files.length > 0) {
+        const fd = new FormData();
+        fd.append('avatar', fileInput.files[0]);
+        const uploadRes = await fetch('/api/upload/avatar', { method: 'POST', body: fd, headers: { 'Authorization': 'Bearer ' + getToken() } });
+        if (uploadRes.ok) {
+            const data = await uploadRes.json();
+            avatarUrl = data.url;
+        }
+    }
+
+    const payload = {
+        name: document.getElementById('pName').value,
+        phone: document.getElementById('pPhone').value,
+        address: document.getElementById('pAddress').value,
+        bio: document.getElementById('pBio').value,
+        two_factor_enabled: document.getElementById('p2FA').checked ? 1 : 0
+    };
+    if (avatarUrl) payload.avatar_url = avatarUrl;
+
+    const resp = await apiRequest('/api/users/me', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+    });
+    setLoading(btn, false);
+    if(resp.ok) {
+        window.original2FA = payload.two_factor_enabled === 1;
+        document.getElementById('successMsg').textContent='Profile updated!'; document.getElementById('successMsg').classList.remove('hidden'); showToast('Profile updated!','success'); 
+    }
+}
+</script>{% endblock %}

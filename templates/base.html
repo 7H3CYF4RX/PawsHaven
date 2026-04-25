@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PawsHaven — Veterinary & Animal Rescue{% endblock %}</title>
+    <meta name="description" content="PawsHaven is a veterinary clinic and animal rescue shelter dedicated to saving lives and finding forever homes for rescued animals.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+    
+    <!-- Premium Themes -->
+    <style id="theme-variables">
+        :root {
+            --primary-color: #059669;
+            --primary-hover: #047857;
+            --secondary-color: #f1f5f9;
+            --bg-color: #ffffff;
+            --text-main: #1f2937;
+            --nav-bg: #ffffff;
+        }
+
+        [data-theme='dark'] {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --nav-bg: #1e293b;
+            --brand-primary: #3b82f6;
+            --bg-primary: #0f172a;
+        }
+
+        [data-theme='galaxy'] {
+            --primary-color: #a855f7;
+            --primary-hover: #c084fc;
+            --bg-color: #020617;
+            --text-main: #f8fafc;
+            --nav-bg: rgba(2, 6, 23, 0.7);
+            --brand-primary: #a855f7;
+            --bg-primary: #020617;
+            --brand-gradient: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --border-light: rgba(168, 85, 247, 0.2);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+    
+    <script>
+        (function() {
+            const theme = "{{ g.current_user.active_theme if g.current_user else 'default' }}";
+            if (theme && theme !== 'default') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'galaxy') {
+                initGalaxy();
+            }
+        });
+
+        function initGalaxy() {
+            const canvas = document.createElement('canvas');
+            canvas.id = 'galaxy-canvas';
+            Object.assign(canvas.style, {
+                position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+                pointerEvents: 'none', zIndex: '-1', background: '#020617'
+            });
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            let w, h, stars = [], nebulae = [], shootingStars = [];
+            let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                initElements();
+            }
+
+            class Star {
+                constructor(layer) {
+                    this.layer = layer; // 0, 1, 2 (back, mid, front)
+                    this.reset();
+                }
+                reset() {
+                    this.x = Math.random() * w;
+                    this.y = Math.random() * h;
+                    this.size = (Math.random() * 1.5 + 0.2) * (this.layer + 1) * 0.5;
+                    this.speed = (0.05 + Math.random() * 0.1) * (this.layer + 1);
+                    this.opacity = Math.random() * 0.5 + 0.2;
+                    this.twinkle = Math.random() * 0.02;
+                    this.twinkleDir = 1;
+                }
+                update() {
+                    this.y -= this.speed;
+                    if (this.y < -10) this.y = h + 10;
+                    
+                    // Twinkle effect
+                    this.opacity += this.twinkle * this.twinkleDir;
+                    if (this.opacity > 0.8 || this.opacity < 0.2) this.twinkleDir *= -1;
+
+                    // Mouse parallax
+                    this.drawX = this.x + (mouse.x - w/2) * (this.layer + 1) * 0.02;
+                    this.drawY = this.y + (mouse.y - h/2) * (this.layer + 1) * 0.02;
+                }
+                draw() {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(this.drawX, this.drawY, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            class ShootingStar {
+                constructor() { this.reset(); this.active = false; }
+                reset() {
+                    this.x = Math.random() * w;
+                    this.y = Math.random() * h * 0.5;
+                    this.len = Math.random() * 80 + 20;
+                    this.speed = Math.random() * 10 + 5;
+                    this.opacity = 1;
+                }
+                update() {
+                    if (!this.active) {
+                        if (Math.random() < 0.001) this.active = true;
+                        return;
+                    }
+                    this.x += this.speed;
+                    this.y += this.speed * 0.5;
+                    this.opacity -= 0.02;
+                    if (this.opacity <= 0) { this.reset(); this.active = false; }
+                }
+                draw() {
+                    if (!this.active) return;
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x - this.len, this.y - this.len * 0.5);
+                    ctx.stroke();
+                }
+            }
+
+            function initElements() {
+                stars = [];
+                for (let i = 0; i < 300; i++) stars.push(new Star(Math.floor(Math.random() * 3)));
+                shootingStars = [new ShootingStar(), new ShootingStar()];
+            }
+
+            function drawNebula() {
+                const gradient = ctx.createRadialGradient(w * 0.7, h * 0.3, 0, w * 0.7, h * 0.3, w * 0.6);
+                gradient.addColorStop(0, 'rgba(168, 85, 247, 0.1)');
+                gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.05)');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+
+                const gradient2 = ctx.createRadialGradient(w * 0.2, h * 0.7, 0, w * 0.2, h * 0.7, w * 0.5);
+                gradient2.addColorStop(0, 'rgba(236, 72, 153, 0.08)');
+                gradient2.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient2;
+                ctx.fillRect(0, 0, w, h);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', (e) => {
+                mouse.targetX = e.clientX;
+                mouse.targetY = e.clientY;
+            });
+            resize();
+
+            function animate() {
+                // Smooth mouse movement
+                mouse.x += (mouse.targetX - mouse.x) * 0.05;
+                mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, w, h);
+                
+                drawNebula();
+                
+                stars.forEach(s => { s.update(); s.draw(); });
+                shootingStars.forEach(s => { s.update(); s.draw(); });
+                
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% if not hide_nav %}
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand"><span class="paw">🐾</span> PawsHaven</a>
+            <div class="navbar-links">
+                <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
+                <a href="/animals" {% if '/animals' in request.path %}class="active"{% endif %}>Adopt</a>
+                <a href="/donate" {% if request.path == '/donate' %}class="active"{% endif %}>Donate</a>
+                <a href="/store" {% if request.path == '/store' %}class="active"{% endif %}>Store</a>
+                <a href="/premium" {% if request.path == '/premium' %}class="active"{% endif %}>💎 Premium</a>
+                {% if g.current_user %}
+                <a href="/dashboard" {% if '/dashboard' in request.path %}class="active"{% endif %}>Dashboard</a>
+                <a href="/reports/stray" {% if '/reports' in request.path %}class="active"{% endif %}>Report</a>
+                {% endif %}
+                <a href="/about" {% if request.path == '/about' %}class="active"{% endif %}>About</a>
+                <a href="/contact" {% if request.path == '/contact' %}class="active"{% endif %}>Contact</a>
+                <a href="/community" {% if request.path == '/community' %}class="active"{% endif %}>Community</a>
+            </div>
+            <div class="navbar-actions">
+                {% if g.current_user %}
+                <div class="navbar-user-menu">
+                    <div class="navbar-avatar" title="{{ g.current_user.email }}">
+                        {% if g.current_user.avatar_url %}
+                            <img src="{{ g.current_user.avatar_url }}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            {{ g.current_user.email[0]|upper }}
+                        {% endif %}
+                    </div>
+                    <div class="user-dropdown">
+                        <a href="/dashboard">📊 Dashboard</a>
+                        <a href="/dashboard/profile">👤 Profile</a>
+                        <a href="/dashboard/adoptions">🐾 My Adoptions</a>
+                        <a href="/dashboard/appointments">📅 Appointments</a>
+                        <a href="/integrations">🔗 Integrations</a>
+                        <a href="/vet/diagnose">🩺 Vet Tools</a>
+                        {% if g.current_user.role == 'admin' %}
+                        <a href="/admin">⚙️ Admin</a>
+                        {% endif %}
+                        <div class="divider"></div>
+                        <a href="#" onclick="logout(); return false;">🚪 Sign Out</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="/login" class="btn btn-ghost">Sign In</a>
+                <a href="/register" class="btn btn-primary">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main id="mainContent">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if not hide_footer %}
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">🐾 PawsHaven</div>
+                    <p class="footer-desc">Dedicated to rescuing, rehabilitating, and rehoming animals in need since 2018. Every life deserves a second chance.</p>
+                    <p style="font-size:0.82rem;">EIN: 84-1234567 | 501(c)(3) Nonprofit</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="/animals">Adopt a Pet</a></li>
+                        <li><a href="/donate">Donate</a></li>
+                        <li><a href="/reports/stray">Report a Stray</a></li>
+                        <li><a href="/newsletter">Newsletter</a></li>
+                        <li><a href="/about">About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="/appointments/new">Schedule Visit</a></li>
+                        <li><a href="/vet/diagnose">Vet Diagnostics</a></li>
+                        <li><a href="/animals/import">Data Import</a></li>
+                        <li><a href="/export">Export Data</a></li>
+                        <li><a href="/integrations">Integrations</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li>📍 742 Evergreen Terrace</li>
+                        <li>📞 (555) 247-PAWS</li>
+                        <li>📧 hello@pawshaven.org</li>
+                        <li style="margin-top:12px;"><a href="/contact">Contact Form →</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 PawsHaven Inc. All rights reserved. | <a href="/api/swagger" style="color: inherit; text-decoration: none;">API Documentation</a></p>
+                <div class="footer-social">
+                    <!-- X (Twitter) -->
+                    <a href="/api/redirect?url=https://twitter.com/pawshaven&ref=footer-twitter" target="_blank" title="Follow us on X" class="social-icon" style="color:#aaa;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                    <!-- Facebook -->
+                    <a href="/api/redirect?url=https://facebook.com/pawshaven&ref=footer-facebook" target="_blank" title="Follow us on Facebook" class="social-icon" style="color:#aaa;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="/api/redirect?url=https://instagram.com/pawshaven&ref=footer-instagram" target="_blank" title="Follow us on Instagram" class="social-icon" style="color:#aaa;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                        </svg>
+                    </a>
+                    <!-- YouTube -->
+                    <a href="/api/redirect?url=https://youtube.com/pawshaven&ref=footer-youtube" target="_blank" title="Watch us on YouTube" class="social-icon" style="color:#aaa;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- Global Confirmation Modal -->
+    <div id="confirmModalOverlay" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.3s ease;">
+        <div id="confirmModal" style="background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="background: #fee2e2; color: #dc2626; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;" id="confirmIcon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 id="confirmTitle" style="margin-bottom: 0.5rem; color: #1f2937;">Are you sure?</h3>
+            <p id="confirmMessage" class="text-secondary" style="margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;">This action cannot be undone.</p>
+            <div style="display: flex; gap: 0.75rem;">
+                <button id="confirmCancelBtn" class="btn btn-ghost" style="flex: 1;">Cancel</button>
+                <button id="confirmConfirmBtn" class="btn btn-danger" style="flex: 1;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Broadcast Modal -->
+    <div id="broadcastModalOverlay" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.5s ease;">
+        <div id="broadcastModal" style="background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 550px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 4px solid #3b82f6; transform: scale(0.9); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;">
+            <div style="background: #3b82f6; color: white; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: -50px auto 1.5rem; border: 4px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+            </div>
+            <h2 id="bcModalTitle" style="text-align: center; margin-bottom: 0.5rem; color: #1e293b; font-size: 1.75rem;">Announcement</h2>
+            <div id="bcModalMessage" style="color: #475569; font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem; max-height: 300px; overflow-y: auto; background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;"></div>
+            <button onclick="closeBroadcast()" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Understood</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

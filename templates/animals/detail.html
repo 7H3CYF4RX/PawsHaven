@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Animal Details — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content">
+    <div class="container-md">
+        <a href="/animals" class="btn btn-ghost mb-lg">← Back to Animals</a>
+        <div id="animalDetail"><div class="skeleton skeleton-block mb-lg"></div></div>
+        <div class="card mt-xl">
+            <div class="card-header"><h3 class="card-title">Medical Records</h3></div>
+            <div id="medicalRecords"><p class="text-muted">Loading records...</p></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+const animalId = '{{ animal_id }}';
+document.addEventListener('DOMContentLoaded', async () => {
+    const [animalResp, medResp] = await Promise.all([
+        apiRequest(`/api/animals/${animalId}`),
+        apiRequest(`/api/animals/${animalId}/medical`)
+    ]);
+    if(animalResp.ok) {
+        const a = animalResp.data.animal;
+        const emoji = a.species==='Dog'?'🐕':a.species==='Cat'?'🐈':'🐾';
+        document.getElementById('animalDetail').innerHTML = `
+            <div class="card"><div class="flex gap-lg" style="flex-wrap:wrap">
+                <div class="animal-detail-img-wrap" style="flex:1;min-width:200px;height:350px;background:var(--bg-secondary);border-radius:var(--radius-lg);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                    ${a.image_url ? `<img src="${a.image_url}" alt="${escapeHtml(a.name)}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="font-size:5rem;">${emoji}</div>`}
+                </div>
+                <div style="flex:2;min-width:300px;">
+                    <div class="flex items-center gap-md mb-md"><h1>${escapeHtml(a.name)}</h1><span class="badge badge-${a.status==='available'?'success':a.status==='adopted'?'info':'warning'}">${a.status.replace('_',' ')}</span></div>
+                    <div class="flex gap-lg mb-lg text-secondary"><span>${escapeHtml(a.breed)}</span><span>${escapeHtml(a.age)}</span><span>${a.gender}</span><span>${escapeHtml(a.species)}</span></div>
+                    <p class="mb-lg" style="font-size:1.1rem;line-height:1.6;">${escapeHtml(a.description)}</p>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:var(--radius-md);border-left:4px solid var(--brand-primary);margin-bottom:1.5rem;">
+                        <p class="text-muted" style="margin:0;"><strong>📋 Medical History:</strong> ${escapeHtml(a.medical_notes||'No complex history reported.')}</p>
+                    </div>
+                    <div class="flex gap-sm">
+                        ${a.status==='available'?`<a href="/animals/${animalId}/adopt" class="btn btn-primary btn-lg">💝 Adopt ${escapeHtml(a.name)}</a>`:'<p class="badge badge-warning" style="font-size:1rem;padding:0.75rem 1.5rem;">Not available for adoption</p>'}
+                        <a href="/api/share/${animalId}?note=Check out this adorable pet!" class="btn btn-secondary btn-lg" target="_blank">✉️ Share</a>
+                    </div>
+                </div></div></div>`;
+    }
+    if(medResp.ok) {
+        const recs = medResp.data.records||[];
+        document.getElementById('medicalRecords').innerHTML = recs.length?`<ul class="activity-list">${recs.map(r=>`
+            <li class="activity-item"><div class="activity-dot dot-${r.record_type==='vaccination'?'green':r.record_type==='surgery'?'amber':'blue'}"></div>
+            <div><div class="activity-text"><strong>${escapeHtml(r.record_type)}</strong> — ${escapeHtml(r.diagnosis)}</div>
+            <div class="activity-time">${escapeHtml(r.date)} · ${escapeHtml(r.vet_name)} · ${escapeHtml(r.treatment)}</div></div></li>`).join('')}</ul>`
+            :'<p class="text-muted">No medical records found for this animal.</p>';
+    }
+});
+</script>{% endblock %}

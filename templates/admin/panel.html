@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container">
+    <h1 class="mb-md">⚙️ Admin Panel</h1>
+    <p class="text-secondary mb-xl">Manage users, review submissions, and monitor platform health.</p>
+    <div class="dash-grid" id="adminStats"><div class="dash-stat"><div class="dash-stat-icon">👥</div><div class="dash-stat-value" id="aUsers">—</div><div class="dash-stat-label">Users</div></div>
+    <div class="dash-stat"><div class="dash-stat-icon">🐾</div><div class="dash-stat-value" id="aAnimals">—</div><div class="dash-stat-label">Animals</div></div>
+    <div class="dash-stat"><div class="dash-stat-icon">💰</div><div class="dash-stat-value" id="aDonations">—</div><div class="dash-stat-label">Donations</div></div></div>
+    <div class="card mb-xl"><h3 class="card-title mb-md">User Management</h3>
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Created</th></tr></thead><tbody id="userTable"><tr><td colspan="5" class="text-muted">Loading...</td></tr></tbody></table></div></div>
+    <div class="flex gap-md">
+        <a href="/admin/review" class="btn btn-primary">📋 Review Contact Submissions →</a>
+        <a href="/admin/adoptions" class="btn btn-secondary">🐾 Manage Adoption Requests →</a>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+document.addEventListener('DOMContentLoaded', async()=>{
+    const resp=await apiRequest('/api/admin/dashboard');
+    if(resp.ok){const d=resp.data;
+    document.getElementById('aUsers').textContent=d.users?.length||0;
+    document.getElementById('aAnimals').textContent=d.total_animals||0;
+    document.getElementById('aDonations').textContent='$'+(d.total_donations||0).toFixed(2);
+    document.getElementById('userTable').innerHTML=(d.users||[]).map(u=>`<tr><td>${u.id}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.email)}</td><td><span class="badge badge-${u.role==='admin'?'danger':u.role==='vet'?'warning':'green'}">${u.role}</span></td><td>${u.created_at||''}</td></tr>`).join('');}
+    else showToast('Access denied or error loading admin data','error');
+});
+</script>{% endblock %}

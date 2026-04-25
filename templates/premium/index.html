@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% block title %}Premium Membership — PawsHaven{% endblock %}
+
+{% block content %}
+<div class="premium-page">
+    <div class="premium-header">
+        <div class="container text-center">
+            <div class="premium-badge">PREMIUM</div>
+            <h1>Unlock the Full PawsHaven Experience</h1>
+            <p class="lead">Support our mission and get exclusive customization features.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if not user %}
+        <div class="alert alert-warning mb-lg text-center" style="border-radius: 1rem; padding: 1.5rem;">
+            <span style="font-size: 1.5rem; margin-right: 1rem;">⚠️</span>
+            <strong>Attention:</strong> You must be <a href="/login">signed in</a> to purchase premium or customize themes.
+        </div>
+        {% endif %}
+
+        <div class="premium-grid">
+            <!-- Subscription Card -->
+            <div class="premium-card pricing-card">
+                <div class="card-glow"></div>
+                <div class="pricing-header">
+                    <h2>Lifetime Premium</h2>
+                    <div class="price">$250 <span class="one-time">One-time payment</span></div>
+                </div>
+                <ul class="premium-features">
+                    <li><span class="check">✓</span> <strong>Exclusive Theme Personalization</strong></li>
+                    <li><span class="check">✓</span> Priority Adoption Processing</li>
+                    <li><span class="check">✓</span> Ad-free Experience</li>
+                    <li><span class="check">✓</span> Premium Member Badge</li>
+                    <li><span class="check">✓</span> Supporter of Animal Rescue</li>
+                </ul>
+                
+                {% if user.is_premium %}
+                <div class="premium-status-active">
+                    <div class="active-badge">ACTIVE MEMBER</div>
+                    <p>Thank you for your generous support!</p>
+                </div>
+                {% else %}
+                <button class="btn btn-primary btn-block btn-lg" onclick="showPaymentForm()" {% if not user %}disabled title="Login required"{% endif %}>Get Premium Now</button>
+                {% endif %}
+            </div>
+
+            <!-- Theme Switcher Card -->
+            <div class="premium-card theme-card" style="min-height: 400px;">
+                <div class="flex justify-between items-center mb-md">
+                    <h3>Exclusive Benefit: Live Themes</h3>
+                    {% if g.current_user.is_premium %}
+                    <span class="badge badge-success">UNLOCKED</span>
+                    {% else %}
+                    <span class="badge badge-warning">LOCKED</span>
+                    {% endif %}
+                </div>
+                <p class="text-secondary mb-xl">Experience the breathtaking Dark Galaxy theme with interactive cursor movement.</p>
+                
+                <div class="theme-selector-grid">
+                    <div class="theme-option">
+                        <div class="theme-preview default-preview"></div>
+                        <span class="theme-name">Default</span>
+                        <label class="switch-container">
+                            <input type="checkbox" class="theme-switch" data-theme="default" 
+                                {% if not g.current_user.is_premium %}disabled{% endif %} 
+                                onchange="handleToggle(this, 'default')" 
+                                {% if g.current_user.active_theme == 'default' or not g.current_user.active_theme %}checked{% endif %}>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <div class="theme-option">
+                        <div class="theme-preview dark-preview"></div>
+                        <span class="theme-name">Night Mode</span>
+                        <label class="switch-container">
+                            <input type="checkbox" class="theme-switch" data-theme="dark" 
+                                {% if not g.current_user.is_premium %}disabled{% endif %} 
+                                onchange="handleToggle(this, 'dark')" 
+                                {% if g.current_user.active_theme == 'dark' %}checked{% endif %}>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <div class="theme-option">
+                        <div class="theme-preview galaxy-preview"></div>
+                        <span class="theme-name">Galaxy (Live)</span>
+                        <label class="switch-container">
+                            <input type="checkbox" class="theme-switch" data-theme="galaxy" 
+                                {% if not g.current_user.is_premium %}disabled{% endif %} 
+                                onchange="handleToggle(this, 'galaxy')" 
+                                {% if g.current_user.active_theme == 'galaxy' %}checked{% endif %}>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModalOverlay" class="modal-overlay hidden">
+    <div class="modal-content payment-modal">
+        <button class="modal-close" onclick="closePaymentForm()">×</button>
+        <h2>Secure Checkout</h2>
+        <p class="text-secondary mb-4">Complete your PawsHaven Premium purchase.</p>
+        
+        <form id="paymentForm" onsubmit="handleSub(event)">
+            <div class="form-group">
+                <label>Name on Card</label>
+                <input type="text" id="card_name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Card Number</label>
+                <input type="text" id="card_num" placeholder="0000 0000 0000 0000" maxlength="19" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Expiry Date</label>
+                    <input type="text" id="card_expiry" placeholder="MM/YY" maxlength="5" required>
+                </div>
+                <div class="form-group">
+                    <label>CVC</label>
+                    <input type="text" id="card_cvc" placeholder="***" maxlength="3" required>
+                </div>
+            </div>
+            <div class="order-summary">
+                <div class="summary-line">
+                    <span>PawsHaven Premium</span>
+                    <span>$250.00</span>
+                </div>
+                <div class="summary-line total">
+                    <span>Total Due</span>
+                    <span>$250.00</span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">Confirm Payment</button>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Premium Styles */
+.premium-page {
+    padding-bottom: 5rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.premium-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    padding: 6rem 0;
+    margin-bottom: -4rem;
+}
+
+.premium-badge {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    color: #1e293b;
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+    font-weight: 800;
+    font-size: 0.75rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+}
+
+.premium-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.premium-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+@media (max-width: 992px) {
+    .premium-grid { grid-template-columns: 1fr; }
+}
+
+.premium-card {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-card {
+    border-top: 5px solid #f59e0b;
+}
+
+.card-glow {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+}
+
+.pricing-header h2 { margin-bottom: 0.5rem; color: #1e293b; }
+.pricing-header .price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 2rem;
+}
+.pricing-header .one-time {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 400;
+}
+
+.premium-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2.5rem 0;
+}
+
+.premium-features li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
+    display: flex;
+    align-items: center;
+}
+
+.premium-features li:last-child { border: none; }
+
+.check {
+    color: #059669;
+    font-weight: bold;
+    margin-right: 0.75rem;
+}
+
+.theme-card {
+    position: relative;
+}
+
+.theme-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.theme-option {
+    text-align: center;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s;
+}
+
+.theme-option:hover { transform: translateY(-5px); }
+
+.theme-preview {
+    height: 60px;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.default-preview { background: #059669; }
+.dark-preview { background: #1e293b; }
+.galaxy-preview { 
+    background: radial-gradient(circle at center, #3b82f6 0%, #1e1b4b 50%, #030712 100%);
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+}
+
+.theme-option span {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1e293b;
+}
+
+/* Payment Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.modal-content.payment-modal {
+    width: 100%;
+    max-width: 450px;
+    padding: 3rem;
+    background: white;
+    border-radius: 2rem;
+    position: relative;
+}
+
+.order-summary {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-top: 2rem;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: #64748b;
+}
+
+.summary-line.total {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 1.125rem;
+}
+
+.premium-status-active {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.active-badge {
+    color: #059669;
+    font-weight: 800;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Toggle Switch CSS - Refined to match image */
+.switch-container {
+    position: relative;
+    display: inline-block;
+    width: 68px;
+    height: 34px;
+    margin-top: 5px;
+}
+
+.switch-container input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #e2e8f0;
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 34px;
+    border: 1px solid #cbd5e1;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+/* Vibrant Gradient for Active State */
+input:checked + .switch-slider {
+    background: linear-gradient(135deg, #4ade80 0%, #3b82f6 100%);
+    border-color: transparent;
+}
+
+input:checked + .switch-slider:before {
+    transform: translateX(34px);
+}
+
+/* Disabled state - still visible for bypass */
+input:disabled + .switch-slider {
+    background: #f1f5f9;
+    cursor: not-allowed;
+}
+
+input:disabled:checked + .switch-slider {
+    background: linear-gradient(135deg, #a7f3d0 0%, #bfdbfe 100%);
+}
+</style>
+
+<script>
+function showPaymentForm() {
+    document.getElementById('paymentModalOverlay').classList.remove('hidden');
+}
+
+function closePaymentForm() {
+    document.getElementById('paymentModalOverlay').classList.add('hidden');
+}
+
+async function handleSub(e) {
+    e.preventDefault();
+    const data = {
+        name_on_card: document.getElementById('card_name').value,
+        card_number: document.getElementById('card_num').value,
+        expiry: document.getElementById('card_expiry').value,
+        cvc: document.getElementById('card_cvc').value
+    };
+
+    try {
+        const resp = await fetch('/api/premium/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await resp.json();
+        if (result.success) {
+            showBroadcast('Membership Active!', result.message);
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            alert(result.error || 'Subscription failed');
+        }
+    } catch (err) {
+        alert('An error occurred during payment');
+    }
+}
+
+async function handleToggle(checkbox, theme) {
+    if (!checkbox.checked) {
+        // Prevent unchecking the active theme if no other is selected
+        // In this simple UI, we'll just re-check it if they try to turn it off
+        checkbox.checked = true;
+        return;
+    }
+
+    // Uncheck other switches visually
+    document.querySelectorAll('.theme-switch').forEach(sw => {
+        if (sw !== checkbox) sw.checked = false;
+    });
+
+    try {
+        const resp = await fetch('/api/premium/apply-theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: theme })
+        });
+        const result = await resp.json();
+        if (result.success) {
+            showBroadcast('Theme Applied!', result.message);
+            document.documentElement.setAttribute('data-theme', theme);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            alert(result.error || 'Failed to apply theme');
+            checkbox.checked = false; // Revert
+        }
+    } catch (err) {
+        alert('An error occurred while applying theme');
+        checkbox.checked = false;
+    }
+}
+</script>
+{% endblock %}

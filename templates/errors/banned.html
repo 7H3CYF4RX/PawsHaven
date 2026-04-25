@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GET REKT — PawsHaven</title>
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            text-align: center;
+            color: white;
+        }
+        .meme-container {
+            position: relative;
+            max-width: 600px;
+            animation: shake 0.5s infinite;
+        }
+        .meme-image {
+            width: 100%;
+            border: 5px solid #fff;
+            box-shadow: 0 0 50px rgba(255,0,0,0.7);
+        }
+        .top-text {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            font-size: 3.5rem;
+            text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 5px 5px 10px #000;
+            letter-spacing: 2px;
+        }
+        .bottom-text {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            font-size: 2.2rem;
+            text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 5px 5px 10px #000;
+            letter-spacing: 1px;
+            color: #ff3e3e;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .bruh {
+            font-size: 5rem;
+            display: block;
+            margin-top: 20px;
+            color: #ffff00;
+            text-shadow: 0 0 20px #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="meme-container">
+        <!-- Using a placeholder for a crying sad animal or ban hammer -->
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2ZndmN3ZndmN3ZndmN3ZndmN3ZndmN3ZndmN3ZndmN3ZiZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKVUn7iM8FMEU24/giphy.gif" class="meme-image" alt="BANNED">
+        <div class="top-text">YOU GOT BANNED</div>
+        <div class="bottom-text">WHY DONT YOU OBEY RULES BRUHHH!!???</div>
+        <span class="bruh">L + RATIO</span>
+    </div>
+    <audio autoplay loop>
+        <source src="https://www.myinstants.com/media/sounds/bruh.mp3" type="audio/mpeg">
+    </audio>
+</body>
+</html>

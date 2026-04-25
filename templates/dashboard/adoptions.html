@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}My Adoptions — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content">
+    <div class="container">
+        <h1 class="mb-md">My Adoptions</h1>
+        <p class="text-secondary mb-xl">Track your adoption applications and download certificates.</p>
+
+        <div class="card">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Animal</th>
+                            <th>Applied On</th>
+                            <th>Status</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adoptionsTable">
+                        <tr><td colspan="5" class="text-muted">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const resp = await apiRequest('/api/adoptions');
+    if(resp.ok) {
+        const adoptions = resp.data.adoptions || [];
+        document.getElementById('adoptionsTable').innerHTML = adoptions.length ? adoptions.map(a => `
+            <tr>
+                <td><strong>${escapeHtml(a.animal_name)}</strong></td>
+                <td>${new Date(a.applied_at).toLocaleDateString()}</td>
+                <td>
+                    <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'declined' ? 'danger' : 'warning'}">${a.status}</span>
+                    ${a.reviewed_at ? `<div class="text-muted mt-xs" style="font-size:0.75rem">Reviewed: ${new Date(a.reviewed_at).toLocaleDateString()}</div>` : ''}
+                </td>
+                <td style="max-width: 400px;">
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(a.reason)}">${escapeHtml(a.reason)}</div>
+                    ${a.admin_notes ? `<div class="admin-feedback mt-sm" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(a.admin_notes)}"><strong>Admin Note:</strong> ${escapeHtml(a.admin_notes)}</div>` : ''}
+                </td>
+                <td>
+                    ${a.status === 'approved' ? `<a href="/api/adoptions/${a.encoded_id}/certificate" class="btn btn-outline btn-sm">📜 Certificate</a>` : '<span class="text-muted">—</span>'}
+                </td>
+            </tr>
+        `).join('') : '<tr><td colspan="5" class="text-muted">No adoption applications found.</td></tr>';
+    }
+});
+</script>{% endblock %}

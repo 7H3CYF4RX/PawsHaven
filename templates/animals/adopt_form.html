@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Adoption Application — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-sm">
+    <h1 class="mb-md">Adoption Application</h1>
+    <p class="text-secondary mb-xl">Complete this form to apply for adoption.</p>
+    <div class="card">
+        <form onsubmit="handleAdopt(event)">
+            <div class="form-group"><label class="form-label">Why do you want to adopt?</label><textarea id="reason" class="form-input" rows="4" required placeholder="Tell us why this animal would be perfect for your family..."></textarea></div>
+            <button type="submit" id="adoptBtn" class="btn btn-primary btn-lg btn-block">Submit Application 💝</button>
+        </form>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function handleAdopt(e){e.preventDefault();const btn=document.getElementById('adoptBtn');setLoading(btn,true);
+const resp=await apiRequest('/api/animals/{{ animal_id }}/adopt',{method:'POST',body:JSON.stringify({reason:document.getElementById('reason').value})});
+setLoading(btn,false);if(resp.ok){showToast(resp.data.message,'success');setTimeout(()=>window.location='/dashboard',2000);}else showToast(resp.data.error,'error');}
+</script>{% endblock %}

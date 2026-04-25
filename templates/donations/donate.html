@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Donate — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-sm">
+    <div class="section-header"><h1>Support Our Mission 💝</h1><p class="text-secondary">Every donation helps us rescue, heal, and rehome animals in need. PawsHaven is a registered 501(c)(3) nonprofit.</p></div>
+    
+    <div class="card">
+        <form onsubmit="makeDonation(event)">
+            <div class="form-group"><label class="form-label">Donation Amount ($) <span class="text-muted" style="font-size:0.8rem">Max: $50,000</span></label><input type="number" id="dAmount" class="form-input" min="1" max="50000" step="0.01" required placeholder="50.00"></div>
+            
+            <div class="form-group mt-md">
+                <label class="form-label">Credit Card Details <span class="text-muted" style="font-size:0.8rem">(Secure Stripe Payment)</span></label>
+                <div style="border:1px solid #ccc; border-radius:4px; padding:10px; background:#f9f9f9;">
+                    <input type="text" id="donateCardNumber" class="form-input mb-sm" placeholder="Card Number (0000 0000 0000 0000)" required maxlength="19">
+                    <div class="flex gap-sm">
+                        <input type="text" id="donateCardExpiry" class="form-input" placeholder="MM/YY" style="width:50%" required maxlength="5">
+                        <input type="text" id="donateCardCVC" class="form-input" placeholder="CVC" style="width:50%" required maxlength="4">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="donateBtn" class="btn btn-primary btn-lg btn-block mt-md">Process Donation 🔒</button>
+        </form>
+    </div>
+    <div class="card mt-xl">
+        <h3 class="card-title mb-md">Download Receipts</h3>
+        <p class="text-secondary mb-md">Access your donation receipts for tax purposes.</p>
+        <div class="flex gap-sm flex-col" id="receiptsContainer">
+            {% if latest_receipt %}
+            <a id="latestReceiptBtn" href="/api/donations/receipt/{{ latest_receipt }}" class="btn btn-secondary btn-sm" target="_blank">📄 Download Latest Receipt</a>
+            {% else %}
+            <p class="text-muted" id="noReceiptsMsg">No donations made yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function makeDonation(e){
+    e.preventDefault();
+    const btn = document.getElementById('donateBtn');
+    const cardNum = document.getElementById('donateCardNumber').value.replace(/\s/g, '');
+    const expiry  = document.getElementById('donateCardExpiry').value.trim();
+    const cvc     = document.getElementById('donateCardCVC').value.trim();
+    const amount  = parseFloat(document.getElementById('dAmount').value);
+
+    // Client-side pre-check (UX only)
+    if (isNaN(amount) || amount <= 0) { showToast('Please enter a valid donation amount.', 'error'); return; }
+    if (amount > 50000) { showToast('Maximum donation amount is $50,000 per transaction.', 'error'); return; }
+    if (cardNum.length < 16) { showToast('Please enter a valid 16-digit card number.', 'error'); return; }
+    if (!expiry.match(/^\d{2}\/\d{2}$/)) { showToast('Please enter expiry as MM/YY.', 'error'); return; }
+    if (cvc.length < 3) { showToast('Please enter a valid CVC.', 'error'); return; }
+
+    setLoading(btn, true);
+    const resp = await apiRequest('/api/donations', {
+        method: 'POST',
+        body: JSON.stringify({
+            amount: amount,
+            card_number: cardNum,
+            expiry: expiry,
+            cvc: cvc
+        })
+    });
+setLoading(btn,false);
+if(resp.ok) {
+    showToast(resp.data.message,'success');
+    document.getElementById('receiptsContainer').innerHTML = `<a href="/api/donations/receipt/${resp.data.donation.receipt}" class="btn btn-secondary btn-sm" target="_blank">📄 Download Latest Receipt</a>`;
+} else {
+    showToast(resp.data.error,'error');
+}
+}
+</script>{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Review Queue — PawsHaven Admin{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-md">
+    <h1 class="mb-md">📋 Contact Submissions Review</h1>
+    <p class="text-secondary mb-xl">Review and respond to customer inquiries.</p>
+    <div id="submissions"><p class="text-muted">Loading submissions...</p></div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+document.addEventListener('DOMContentLoaded', async()=>{
+    const resp=await apiRequest('/api/admin/review');
+    if(resp.ok){const subs=resp.data.submissions||[];
+    document.getElementById('submissions').innerHTML=subs.length?subs.map(s=>`
+        <div class="card mb-md">
+            <div class="flex justify-between items-center mb-sm">
+                <strong>${escapeHtml(s.name)} &lt;${escapeHtml(s.email)}&gt;</strong>
+                <span class="text-muted" style="font-size:0.8rem">${s.created_at||''}</span></div>
+            <p class="mb-sm text-secondary">${escapeHtml(s.subject||'No subject')}</p>
+            <div class="card-desc">${s.message}</div>
+            <p class="text-muted mt-sm" style="font-size:0.78rem">IP: ${s.ip_address||'unknown'}</p>
+        </div>`).join(''):'<div class="empty-state"><h3>No submissions</h3></div>';}
+});
+</script>{% endblock %}

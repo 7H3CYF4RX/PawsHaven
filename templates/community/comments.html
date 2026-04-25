@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Community — PawsHaven{% endblock %}
+{% block content %}
+<div class="page-content"><div class="container-md">
+    <h1 class="mb-md">Community Comments</h1>
+    <p class="text-secondary mb-xl">Share your thoughts about our shelter animals.</p>
+    <div class="card mb-xl">
+        <form onsubmit="postComment(event)">
+            <div class="form-group"><label class="form-label">Your Comment</label><textarea id="commentText" class="form-input" rows="3" required placeholder="Share your thoughts..."></textarea></div>
+            <button type="submit" id="commentBtn" class="btn btn-primary">💬 Post Comment</button>
+        </form>
+    </div>
+    <div id="commentsList"><p class="text-muted">Loading comments...</p></div>
+</div></div>
+{% endblock %}
+{% block scripts %}<script>
+async function loadComments(){
+    const resp=await apiRequest('/api/comments');
+    if(resp.ok){
+        const comments=resp.data.comments||[];
+        document.getElementById('commentsList').innerHTML=comments.length?comments.map(c=>`
+            <div class="card mb-md"><div class="flex justify-between items-center mb-sm">
+                <strong>${escapeHtml(c.author||'User')}</strong><span class="text-muted" style="font-size:0.8rem">${c.created_at||''}</span></div>
+                <div>${c.content}</div></div>`).join(''):'<div class="empty-state"><h3>No comments yet</h3><p>Be the first to share!</p></div>';
+    }
+}
+async function postComment(e){e.preventDefault();const btn=document.getElementById('commentBtn');setLoading(btn,true);
+const resp=await apiRequest('/api/comments',{method:'POST',body:JSON.stringify({content:document.getElementById('commentText').value})});
+setLoading(btn,false);if(resp.ok){showToast('Comment posted!','success');document.getElementById('commentText').value='';loadComments();}else showToast(resp.data.error,'error');}
+document.addEventListener('DOMContentLoaded',loadComments);
+</script>{% endblock %}

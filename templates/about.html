@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}About Us — PawsHaven{% endblock %}
+{% block content %}
+<section class="hero" style="padding:var(--space-2xl) 0;">
+    <div class="container"><h1>About PawsHaven</h1><p>Our mission, our team, and the story behind our shelter.</p></div>
+</section>
+<div class="page-content"><div class="container">
+    <div class="grid-2 mb-2xl" style="gap:var(--space-2xl);align-items:center;">
+        <div><h2 class="mb-md">Our Mission</h2>
+        <p class="text-secondary mb-md">Founded in 2018, PawsHaven started as a small foster network run by Dr. Sarah Mitchell and a team of dedicated volunteers. Today, we operate a full-service veterinary clinic and rescue shelter serving over 500 animals each year.</p>
+        <p class="text-secondary mb-md">Every animal that enters our facility receives comprehensive medical care, behavioral assessment, and individualized attention. We never euthanize for space — every life matters.</p>
+        <p class="text-secondary">Our state-of-the-art clinic provides vaccinations, spay/neuter surgeries, dental care, emergency treatment, and ongoing medical management for animals with chronic conditions.</p></div>
+        <div><img src="/static/img/clinic_about.png" alt="PawsHaven Veterinary Clinic" style="width:100%;height:350px;object-fit:cover;border-radius:var(--radius-xl);box-shadow:0 10px 25px rgba(0,0,0,0.1);"></div>
+    </div>
+    <div class="section-header mb-2xl"><span class="section-tag">Our Team</span><h2>Meet the Humans Behind the Paws</h2></div>
+    <div class="grid-4 mb-2xl">
+        <div class="card text-center"><div style="width:80px;height:80px;border-radius:50%;background:var(--brand-gradient);margin:0 auto var(--space-md);display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;">SM</div><h3 style="font-size:1rem">Dr. Sarah Mitchell</h3><p class="text-muted">Founder & Lead Vet</p></div>
+        <div class="card text-center"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#e07a2f,#f4a261);margin:0 auto var(--space-md);display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;">JC</div><h3 style="font-size:1rem">James Cooper</h3><p class="text-muted">Operations Manager</p></div>
+        <div class="card text-center"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#3a86a8,#5bb8d4);margin:0 auto var(--space-md);display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;">MG</div><h3 style="font-size:1rem">Maria Garcia</h3><p class="text-muted">Rescue Coordinator</p></div>
+        <div class="card text-center"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);margin:0 auto var(--space-md);display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;">EW</div><h3 style="font-size:1rem">Emily Watson</h3><p class="text-muted">Community Relations</p></div>
+    </div>
+</div></div>
+{% endblock %}

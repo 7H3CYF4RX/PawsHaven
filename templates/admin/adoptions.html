@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Manage Adoptions — PawsHaven Admin{% endblock %}
+{% block content %}
+<div class="page-content">
+    <div class="container">
+        <div class="flex justify-between items-center mb-xl">
+            <div>
+                <h1 class="mb-xs">🐾 Adoption Requests</h1>
+                <p class="text-secondary">Review and respond to pet adoption applications.</p>
+            </div>
+            <a href="/admin" class="btn btn-ghost">← Back to Admin Panel</a>
+        </div>
+
+        <div class="card">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Animal</th>
+                            <th>Applicant</th>
+                            <th>Applied On</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminAdoptionsTable">
+                        <tr><td colspan="5" class="text-muted">Loading requests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Modal -->
+<div class="modal-overlay" id="responseModal">
+    <div class="modal" style="max-width: 500px;">
+        <div class="card-header"><h3 id="modalTitle">Respond to Request</h3></div>
+        <form id="responseForm">
+            <input type="hidden" id="adoptionId">
+            <input type="hidden" id="responseStatus">
+            
+            <div class="form-group mb-lg">
+                <label class="form-label" for="adminNotes">Reason / Notes (Optional)</label>
+                <textarea id="adminNotes" class="form-input" rows="4" placeholder="Enter the reason for your decision..."></textarea>
+                <p class="text-muted mt-sm" style="font-size: 0.8rem;">This will be visible to the user on their dashboard.</p>
+            </div>
+            
+            <div class="flex justify-end gap-md">
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button type="submit" id="submitBtn" class="btn">Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadAdoptions() {
+    const resp = await apiRequest('/api/adoptions');
+    if(resp.ok) {
+        const adoptions = resp.data.adoptions || [];
+        document.getElementById('adminAdoptionsTable').innerHTML = adoptions.length ? adoptions.map(a => `
+            <tr>
+                <td><strong>${escapeHtml(a.animal_name)}</strong></td>
+                <td>
+                    <div style="font-weight: 600;">${escapeHtml(a.user_name)}</div>
+                    <div class="text-muted" style="max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem;" title="${escapeHtml(a.reason)}">
+                        ${escapeHtml(a.reason)}
+                    </div>
+                </td>
+                <td>${new Date(a.applied_at).toLocaleDateString()}</td>
+                <td>
+                    <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'declined' ? 'danger' : 'warning'}">
+                        ${a.status}
+                    </span>
+                </td>
+                <td>
+                    ${a.status === 'pending' ? `
+                        <div class="flex gap-xs">
+                            <button onclick="openModal('${a.encoded_id}', 'approved')" class="btn btn-success btn-sm">Accept</button>
+                            <button onclick="openModal('${a.encoded_id}', 'declined')" class="btn btn-danger btn-sm">Decline</button>
+                        </div>
+                    ` : `
+                        <div class="text-muted" style="font-size: 0.8rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${a.admin_notes ? escapeHtml(a.admin_notes) : ''}">
+                            Reviewed: ${new Date(a.reviewed_at).toLocaleDateString()}
+                            ${a.admin_notes ? `<br>Note: ${escapeHtml(a.admin_notes)}` : ''}
+                        </div>
+                    `}
+                </td>
+            </tr>
+        `).join('') : '<tr><td colspan="5" class="text-muted">No adoption requests found.</td></tr>';
+    }
+}
+
+window.openModal = function(id, status) {
+    console.log('Opening modal for adoption:', id, status);
+    document.getElementById('adoptionId').value = id;
+    document.getElementById('responseStatus').value = status;
+    document.getElementById('modalTitle').textContent = status === 'approved' ? '✅ Accept Adoption Request' : '❌ Decline Adoption Request';
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = false;
+    submitBtn.className = status === 'approved' ? 'btn btn-success' : 'btn btn-danger';
+    submitBtn.textContent = status === 'approved' ? 'Accept' : 'Decline';
+    
+    document.getElementById('responseModal').classList.add('active');
+}
+
+window.closeModal = function() {
+    document.getElementById('responseModal').classList.remove('active');
+    document.getElementById('responseForm').reset();
+}
+
+document.getElementById('responseForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('adoptionId').value;
+    const status = document.getElementById('responseStatus').value;
+    const notes = document.getElementById('adminNotes').value;
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
+    
+    const resp = await apiRequest(`/api/admin/adoptions/${id}/respond`, {
+        method: 'POST',
+        body: JSON.stringify({ status, notes })
+    });
+    
+    if(resp.ok) {
+        showToast(`Request ${status} successfully!`, 'success');
+        closeModal();
+        loadAdoptions();
+    } else {
+        const errorMsg = resp.data && resp.data.error ? resp.data.error : 'Failed to update request';
+        showToast(errorMsg, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = status === 'approved' ? 'Accept' : 'Decline';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', loadAdoptions);
+</script>
+{% endblock %}
