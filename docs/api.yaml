@@ -25,32 +25,6 @@ paths:
         '200':
           description: OK
 
-  /api/swagger:
-    get:
-      summary: Get API documentation
-      tags: [System]
-      responses:
-        '200':
-          description: OK
-
-  /api/admin/dashboard:
-    get:
-      security: [{ bearerAuth: [] }]
-      summary: Administrative overview
-      tags: [Administration]
-      responses:
-        '200':
-          description: OK
-
-  /api/admin/review:
-    get:
-      security: [{ bearerAuth: [] }]
-      summary: Review system submissions
-      tags: [Administration]
-      responses:
-        '200':
-          description: OK
-
   /api/auth/register:
     post:
       summary: Create a new user account
@@ -95,39 +69,6 @@ paths:
         '200':
           description: OK
 
-  /api/auth/forgot-password:
-    post:
-      summary: Initiate password recovery
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email: { type: string, example: "john@example.com" }
-      responses:
-        '200':
-          description: OK
-
-  /api/auth/reset-password:
-    post:
-      summary: Reset account password
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                token: { type: string, example: "recovery_token_string" }
-                password: { type: string, example: "NewSecurePass123" }
-      responses:
-        '200':
-          description: OK
-
   /api/users/me:
     get:
       security: [{ bearerAuth: [] }]
@@ -148,40 +89,6 @@ paths:
               properties:
                 name: { type: string }
                 phone: { type: string }
-      responses:
-        '200':
-          description: OK
-
-  /api/users/{user_id}:
-    get:
-      security: [{ bearerAuth: [] }]
-      summary: Get user record
-      tags: [User Profile]
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema: { type: string, example: "dXNlcl8y" }
-      responses:
-        '200':
-          description: OK
-    delete:
-      security: [{ bearerAuth: [] }]
-      summary: Deactivate user account
-      tags: [User Profile]
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema: { type: string, example: "dXNlcl8y" }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                otp: { type: string, example: "123456" }
       responses:
         '200':
           description: OK
@@ -252,15 +159,6 @@ paths:
         '200':
           description: OK
 
-  /api/animals/import:
-    post:
-      security: [{ bearerAuth: [] }]
-      summary: Batch record import
-      tags: [Pet Management]
-      responses:
-        '200':
-          description: OK
-
   /api/adoptions:
     get:
       security: [{ bearerAuth: [] }]
@@ -300,49 +198,32 @@ paths:
         '201':
           description: OK
 
-  /api/appointments/{apt_id}:
-    delete:
+  /api/donations:
+    get:
       security: [{ bearerAuth: [] }]
-      summary: Cancel scheduled visit
-      tags: [Service Scheduling]
-      parameters:
-        - in: path
-          name: apt_id
-          required: true
-          schema: { type: integer, example: 5 }
+      summary: View donation summary
+      tags: [Donations]
       responses:
         '200':
           description: OK
-
-  /api/comments:
-    get:
-      tags: [Community]
-      responses: { '200': { description: OK } }
-    post:
-      tags: [Community]
-      summary: Submit user feedback
-      responses: { '201': { description: OK } }
-
-  /api/reports/stray:
-    get:
-      tags: [Community]
-      responses: { '200': { description: OK } }
-    post:
-      tags: [Community]
-      summary: Report stray finding
-      responses: { '201': { description: OK } }
-
-  /api/contact:
-    post:
-      summary: Send inquiry message
-      tags: [Community]
-      responses: { '200': { description: OK } }
-
-  /api/donations:
     post:
       summary: Submit monetary contribution
       tags: [Donations]
-      responses: { '200': { description: OK } }
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: { type: number, example: 50 }
+                card_number: { type: string, example: "4242 4242 4242 4242" }
+                expiry: { type: string, example: "12/25" }
+                cvc: { type: string, example: "123" }
+      responses:
+        '200':
+          description: OK
 
   /api/donations/receipt/{filename}:
     get:
@@ -359,84 +240,67 @@ paths:
     post:
       summary: Validate promotional code
       tags: [Shop]
-      responses: { '200': { description: OK } }
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, example: "SAVE10" }
+      responses:
+        '200':
+          description: OK
 
   /api/store/checkout:
     post:
       summary: Complete order payment
       tags: [Shop]
-      responses: { '200': { description: OK } }
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: { type: number, example: 100.00 }
+                coupon_code: { type: string, example: "FREE" }
+                card_number: { type: string, example: "4242 4242 4242 4242" }
+                expiry: { type: string, example: "12/25" }
+                cvc: { type: string, example: "123" }
+      responses:
+        '200':
+          description: OK
 
-  /api/files/download:
+  /api/store/invoice/{filename}:
     get:
-      summary: Resource retrieval service
-      tags: [Internal Infrastructure]
-      parameters:
-        - in: query
-          name: path
-          required: true
-          schema: { type: string, example: "documents/terms.pdf" }
-      responses: { '200': { description: OK } }
-
-  /api/files/remote:
-    get:
-      summary: External data synchronization
-      tags: [Internal Infrastructure]
-      parameters:
-        - in: query
-          name: url
-          required: true
-          schema: { type: string, example: "https://pawshaven.org/update" }
-      responses: { '200': { description: OK } }
-
-  /api/upload/avatar:
-    post:
-      summary: Asset upload service
-      tags: [Internal Infrastructure]
-      responses: { '200': { description: OK } }
-
-  /api/export:
-    post:
-      summary: Data archival service
-      tags: [Internal Infrastructure]
-      responses: { '200': { description: OK } }
-
-  /api/newsletter/subscribe:
-    post:
-      summary: Newsletter enrollment
-      tags: [Communication]
-      responses: { '200': { description: OK } }
-
-  /api/vet/diagnose:
-    post:
-      summary: Diagnostic equipment interface
-      tags: [Service Infrastructure]
-      responses: { '200': { description: OK } }
-
-  /api/integrations/webhook:
-    post:
-      summary: Webhook notification test
-      tags: [Integrations]
-      responses: { '200': { description: OK } }
-
-  /api/redirect:
-    get:
-      summary: External link relay
-      tags: [System]
-      parameters:
-        - in: query
-          name: url
-          required: true
-          schema: { type: string, example: "https://twitter.com/pawshaven" }
-      responses: { '302': { description: Redirected } }
-
-  /api/share/{item_id}:
-    get:
-      summary: Generate shareable link
-      tags: [System]
+      security: [{ bearerAuth: [] }]
+      summary: Download purchase invoice
+      tags: [Shop]
       parameters:
         - in: path
-          name: item_id
+          name: filename
           required: true
-          schema: { type: string }
-      responses: { '200': { description: OK } }
+          schema: { type: string, example: "invoice_001.pdf" }
+      responses:
+        '200':
+          description: OK
+
+  /api/store/latest-invoice:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get most recent invoice
+      tags: [Shop]
+      responses:
+        '200':
+          description: OK
+
+  /api/broadcast/check:
+    get:
+      summary: Check for active announcements
+      tags: [System]
+      responses:
+        '200':
+          description: OK

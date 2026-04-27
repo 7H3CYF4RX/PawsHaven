@@ -54,19 +54,6 @@
             "body": {"mode": "raw", "raw": "{\n  \"name\": \"John Updated\"\n}"},
             "url": {"raw": "{{base_url}}/api/users/me", "host": ["{{base_url}}"], "path": ["api", "users", "me"]}
           }
-        },
-        {
-          "name": "Get User Details",
-          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/users/:user_id", "host": ["{{base_url}}"], "path": ["api", "users", ":user_id"], "variable": [{"key": "user_id", "value": "dXNlcl8y"}]} }
-        },
-        {
-          "name": "Remove User Account",
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"otp\": \"123456\"\n}"},
-            "url": {"raw": "{{base_url}}/api/users/:user_id", "host": ["{{base_url}}"], "path": ["api", "users", ":user_id"], "variable": [{"key": "user_id", "value": "dXNlcl8y"}]}
-          }
         }
       ]
     },
@@ -88,15 +75,11 @@
         {
           "name": "Get Medical Records",
           "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/animals/:animal_id/medical", "host": ["{{base_url}}"], "path": ["api", "animals", ":animal_id", "medical"], "variable": [{"key": "animal_id", "value": "YW5pbWFsXzE="}]} }
-        },
-        {
-          "name": "Import Records",
-          "request": { "method": "POST", "url": {"raw": "{{base_url}}/api/animals/import", "host": ["{{base_url}}"], "path": ["api", "animals", "import"]} }
         }
       ]
     },
     {
-      "name": "Adoptions & Certificates",
+      "name": "Adoptions",
       "item": [
         {
           "name": "Submit Adoption Application",
@@ -113,32 +96,15 @@
       ]
     },
     {
-      "name": "Veterinary Services",
-      "item": [
-        {
-          "name": "Get All Appointments",
-          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/appointments", "host": ["{{base_url}}"], "path": ["api", "appointments"]} }
-        },
-        {
-          "name": "Schedule Appointment",
-          "request": { "method": "POST", "url": {"raw": "{{base_url}}/api/appointments", "host": ["{{base_url}}"], "path": ["api", "appointments"]} }
-        },
-        {
-          "name": "Cancel Appointment",
-          "request": { "method": "DELETE", "url": {"raw": "{{base_url}}/api/appointments/:apt_id", "host": ["{{base_url}}"], "path": ["api", "appointments", ":apt_id"], "variable": [{"key": "apt_id", "value": "5"}]} }
-        },
-        {
-          "name": "Diagnostic Tool",
-          "request": { "method": "POST", "url": {"raw": "{{base_url}}/api/vet/diagnose", "host": ["{{base_url}}"], "path": ["api", "vet", "diagnose"]} }
-        }
-      ]
-    },
-    {
       "name": "Store & Donations",
       "item": [
         {
+          "name": "Get Donations Summary",
+          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/donations", "host": ["{{base_url}}"], "path": ["api", "donations"]} }
+        },
+        {
           "name": "Submit Donation",
-          "request": { "method": "POST", "body": {"mode": "raw", "raw": "{\"amount\": 50}"}, "url": {"raw": "{{base_url}}/api/donations", "host": ["{{base_url}}"], "path": ["api", "donations"]} }
+          "request": { "method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"amount\": 50,\n  \"card_number\": \"4242 4242 4242 4242\",\n  \"expiry\": \"12/25\",\n  \"cvc\": \"123\"\n}"}, "url": {"raw": "{{base_url}}/api/donations", "host": ["{{base_url}}"], "path": ["api", "donations"]} }
         },
         {
           "name": "Download Receipt",
@@ -146,40 +112,32 @@
         },
         {
           "name": "Verify Coupon",
-          "request": { "method": "POST", "url": {"raw": "{{base_url}}/api/store/coupon", "host": ["{{base_url}}"], "path": ["api", "store", "coupon"]} }
+          "request": { "method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"code\": \"SAVE10\"\n}"}, "url": {"raw": "{{base_url}}/api/store/coupon", "host": ["{{base_url}}"], "path": ["api", "store", "coupon"]} }
         },
         {
           "name": "Process Checkout",
-          "request": { "method": "POST", "body": {"mode": "raw", "raw": "{\"amount\": 10, \"coupon_code\": \"FREE\"}"}, "url": {"raw": "{{base_url}}/api/store/checkout", "host": ["{{base_url}}"], "path": ["api", "store", "checkout"]} }
+          "request": { "method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"amount\": 10,\n  \"coupon_code\": \"FREE\",\n  \"card_number\": \"4242 4242 4242 4242\",\n  \"expiry\": \"12/25\",\n  \"cvc\": \"123\"\n}"}, "url": {"raw": "{{base_url}}/api/store/checkout", "host": ["{{base_url}}"], "path": ["api", "store", "checkout"]} }
+        },
+        {
+          "name": "Download Invoice",
+          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/store/invoice/:filename", "host": ["{{base_url}}"], "path": ["api", "store", "invoice", ":filename"], "variable": [{"key": "filename", "value": "invoice_001.pdf"}]} }
+        },
+        {
+          "name": "Get Latest Invoice",
+          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/store/latest-invoice", "host": ["{{base_url}}"], "path": ["api", "store", "latest-invoice"]} }
         }
       ]
     },
     {
-      "name": "Utility Endpoints",
+      "name": "System",
       "item": [
-        {
-          "name": "Download File",
-          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/files/download?path=documents/report.pdf", "host": ["{{base_url}}"], "path": ["api", "files", "download"], "query": [{"key": "path", "value": "documents/report.pdf"}]} }
-        },
-        {
-          "name": "Record Sync",
-          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/files/remote?url=https://pawshaven.org/sync", "host": ["{{base_url}}"], "path": ["api", "files", "remote"], "query": [{"key": "url", "value": "https://pawshaven.org/sync"}]} }
-        },
-        {
-          "name": "Upload Media",
-          "request": { "method": "POST", "url": {"raw": "{{base_url}}/api/upload/avatar", "host": ["{{base_url}}"], "path": ["api", "upload", "avatar"]} }
-        },
-        {
-          "name": "Export Archives",
-          "request": { "method": "POST", "body": {"mode": "raw", "raw": "{\"format\": \"json\", \"data\": \"user_archive\"}"}, "url": {"raw": "{{base_url}}/api/export", "host": ["{{base_url}}"], "path": ["api", "export"]} }
-        },
         {
           "name": "System Health",
           "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/health", "host": ["{{base_url}}"], "path": ["api", "health"]} }
         },
         {
-          "name": "Domain Redirect",
-          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/redirect?url=https://twitter.com/pawshaven", "host": ["{{base_url}}"], "path": ["api", "redirect"], "query": [{"key": "url", "value": "https://twitter.com/pawshaven"}]} }
+          "name": "Check Broadcast",
+          "request": { "method": "GET", "url": {"raw": "{{base_url}}/api/broadcast/check", "host": ["{{base_url}}"], "path": ["api", "broadcast", "check"]} }
         }
       ]
     }
