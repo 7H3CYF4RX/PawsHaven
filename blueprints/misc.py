@@ -37,9 +37,9 @@ def health_check():
         'uptime': str(datetime.utcnow() - _start_time),
         'endpoints_count': 40,
         'active_services': {
-            'vet_records': 'http://127.0.0.1:8080',
-            'billing': 'http://127.0.0.1:9090',
-            'metadata': 'http://127.0.0.1:1337'
+            'vet_records': 'IP:8080',
+            'billing': 'IP:9090',
+            'metadata': 'IP:1337'
         }
     })
 
@@ -227,6 +227,30 @@ def swagger_index():
                 <h3>Auth</h3>
                 <span class="desc">Authentication and session management</span>
             </div>
+
+            <div class="op-block op-block-post post" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">post</span>
+                    <span class="op-path">/auth/register</span>
+                    <span class="op-desc">Create a new user account</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Parameters</div>
+                    <table>
+                        <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">name</span> <br><span class="param-type">string (body)</span></td><td>User full name</td></tr>
+                            <tr><td><span class="param-name">email</span> <br><span class="param-type">string (body)</span></td><td>User email address</td></tr>
+                            <tr><td><span class="param-name">password</span> <br><span class="param-type">string (body)</span></td><td>User password</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">201 Created</div>
+                    <div class="example">{ "message": "Account created successfully! Welcome to PawsHaven.", "token": "...", "user": { ... } }</div>
+                    <div class="response-code" style="color: var(--swagger-red); margin-top: 10px;">400 Bad Request</div>
+                    <div class="example">{ "error": "account already exist with that email" }</div>
+                </div>
+            </div>
             
             <div class="op-block op-block-post post" onclick="this.classList.toggle('open')">
                 <div class="op-summary">
@@ -250,26 +274,104 @@ def swagger_index():
             </div>
         </div>
 
-        <!-- Section: Animals -->
+        <!-- Section: User Management -->
         <div class="tag-section">
             <div class="tag-header">
-                <h3>Animals</h3>
-                <span class="desc">Browse and manage rescue animals</span>
+                <h3>User Management</h3>
+                <span class="desc">Profile oversight and settings</span>
+            </div>
+            
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/users/me</span>
+                    <span class="op-desc">Get current profile information</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">200 OK</div>
+                </div>
+            </div>
+
+            <div class="op-block op-block-put put" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">put</span>
+                    <span class="op-path">/users/me</span>
+                    <span class="op-desc">Update profile details</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Parameters</div>
+                    <table>
+                        <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">name</span> <br><span class="param-type">string (body)</span></td><td>Updated name</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Pet Catalog -->
+        <div class="tag-section">
+            <div class="tag-header">
+                <h3>Pet Catalog</h3>
+                <span class="desc">Browse and view adoptable animals</span>
             </div>
             
             <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
                 <div class="op-summary">
                     <span class="op-method">get</span>
                     <span class="op-path">/animals</span>
-                    <span class="op-desc">List all adoptable animals</span>
+                    <span class="op-desc">List all animals in the system</span>
                 </div>
                 <div class="op-content">
                     <div class="op-subtitle">Responses</div>
                     <div class="response-code">200 OK</div>
-                    <div class="example">[ { "id": 1, "name": "Buddy", "species": "Dog", ... } ]</div>
                 </div>
             </div>
 
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/animals/search</span>
+                    <span class="op-desc">Search animals by query string</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Parameters</div>
+                    <table>
+                        <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">q</span> <br><span class="param-type">string (query)</span></td><td>Search term (e.g. Buddy)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/animals/{id}</span>
+                    <span class="op-desc">Get specific animal details</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Parameters</div>
+                    <table>
+                        <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">id</span> <br><span class="param-type">string (path)</span></td><td>Encoded animal ID</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Adoptions -->
+        <div class="tag-section">
+            <div class="tag-header">
+                <h3>Adoptions</h3>
+                <span class="desc">Submit and manage adoption requests</span>
+            </div>
+            
             <div class="op-block op-block-post post" onclick="this.classList.toggle('open')">
                 <div class="op-summary">
                     <span class="op-method">post</span>
@@ -282,59 +384,123 @@ def swagger_index():
                         <thead><tr><th>Name</th><th>Description</th></tr></thead>
                         <tbody>
                             <tr><td><span class="param-name">id</span> <br><span class="param-type">string (path)</span></td><td>Encoded animal ID</td></tr>
-                            <tr><td><span class="param-name">reason</span> <br><span class="param-type">string (body)</span></td><td>Motivation for adoption</td></tr>
+                            <tr><td><span class="param-name">reason</span> <br><span class="param-type">string (body)</span></td><td>Reason for adoption</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/adoptions</span>
+                    <span class="op-desc">List your active applications</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">200 OK</div>
+                </div>
+            </div>
         </div>
 
-        <!-- Section: Admin -->
+        <!-- Section: Store & Donations -->
         <div class="tag-section">
             <div class="tag-header">
-                <h3>Admin</h3>
-                <span class="desc">Administrative controls and oversight</span>
+                <h3>Store & Donations</h3>
+                <span class="desc">Support PawsHaven and purchase supplies</span>
             </div>
             
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/donations</span>
+                    <span class="op-desc">View your donation summary</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">200 OK</div>
+                </div>
+            </div>
+
             <div class="op-block op-block-post post" onclick="this.classList.toggle('open')">
                 <div class="op-summary">
                     <span class="op-method">post</span>
-                    <span class="op-path">/admin/adoptions/{id}/respond</span>
-                    <span class="op-desc">Approve or decline an adoption request</span>
+                    <span class="op-path">/donations</span>
+                    <span class="op-desc">Submit a monetary contribution</span>
                 </div>
                 <div class="op-content">
                     <div class="op-subtitle">Parameters</div>
                     <table>
                         <thead><tr><th>Name</th><th>Description</th></tr></thead>
                         <tbody>
-                            <tr><td><span class="param-name">id</span> <br><span class="param-type">string (path)</span></td><td>Encoded adoption ID</td></tr>
-                            <tr><td><span class="param-name">status</span> <br><span class="param-type">string (body)</span></td><td>Choice: "approved" or "declined"</td></tr>
-                            <tr><td><span class="param-name">notes</span> <br><span class="param-type">string (body)</span></td><td>Feedback for the applicant</td></tr>
+                            <tr><td><span class="param-name">amount</span> <br><span class="param-type">number (body)</span></td><td>Donation amount</td></tr>
+                            <tr><td><span class="param-name">card_number</span> <br><span class="param-type">string (body)</span></td><td>Credit card number</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <div class="op-block op-block-post post" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">post</span>
+                    <span class="op-path">/store/checkout</span>
+                    <span class="op-desc">Complete order payment</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Parameters</div>
+                    <table>
+                        <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">amount</span> <br><span class="param-type">number (body)</span></td><td>Total amount</td></tr>
+                            <tr><td><span class="param-name">card_number</span> <br><span class="param-type">string (body)</span></td><td>Credit card number</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/store/latest-invoice</span>
+                    <span class="op-desc">Retrieve your most recent invoice</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">200 OK</div>
+                </div>
+            </div>
         </div>
 
-        <!-- Section: Internal (Hint for CTF) -->
+        <!-- Section: System -->
         <div class="tag-section">
             <div class="tag-header">
-                <h3>Internal</h3>
-                <span class="desc">Internal microservices (Restricted)</span>
+                <h3>System</h3>
+                <span class="desc">Platform status and health</span>
             </div>
             
             <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
                 <div class="op-summary">
                     <span class="op-method">get</span>
-                    <span class="op-path">/vet/records/{id}</span>
-                    <span class="op-desc">Fetch full medical history from internal VetAPI</span>
+                    <span class="op-path">/health</span>
+                    <span class="op-desc">Check system health status</span>
                 </div>
                 <div class="op-content">
-                    <p style="color: var(--swagger-red); font-weight: bold;">⚠️ Restricted to internal VPC calls only.</p>
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">200 OK</div>
                 </div>
             </div>
-        </div>
 
+            <div class="op-block op-block-get get" onclick="this.classList.toggle('open')">
+                <div class="op-summary">
+                    <span class="op-method">get</span>
+                    <span class="op-path">/broadcast/check</span>
+                    <span class="op-desc">Check for active announcements</span>
+                </div>
+                <div class="op-content">
+                    <div class="op-subtitle">Responses</div>
+                    <div class="response-code">204 No Content</div>
+                </div>
+            </div>
     </div>
 </body>
 </html>"""
