@@ -68,6 +68,9 @@
         .modal { background: var(--card); width: 100%; max-width: 500px; border-radius: 12px; padding: 2rem; border: 1px solid rgba(255,255,255,0.1); }
         
         textarea { width: 100%; height: 150px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white; padding: 1rem; box-sizing: border-box; font-family: inherit; outline: none; margin: 1rem 0; }
+        
+        /* Truncate long payload titles in modals */
+        #msgModalTitle { margin:0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
     </style>
 </head>
 <body>
@@ -154,7 +157,21 @@
     </div>
 
     <script>
-        window.allPlayers = [];
+        // Secure escaping for monitoring portal
+        function e(str) {
+            if (!str) return '';
+            let s = String(str);
+            if (s.length > 100) s = s.substring(0, 97) + '...';
+            return s.replace(/[&<>"']/g, function (m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[m];
+            });
+        }
 
         async function loadPlayers() {
             const r = await fetch('/api/host/players');
@@ -182,19 +199,27 @@
 
             const tbody = document.getElementById('playerTable');
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 3rem; color:#64748b;">No players found matching "${q}"</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 3rem; color:#64748b;">No players found matching "${e(q)}"</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(p => `
+            tbody.innerHTML = filtered.map(p => {
+                const safeId = e(p.id);
+                const safeName = e(p.name || 'Anonymous');
+                const safeEmail = e(p.email);
+                // Handle single quotes for JS onclick string literals
+                const jsSafeName = safeName.replace(/'/g, "\\'");
+                const jsSafeId = safeId.replace(/'/g, "\\'");
+
+                return `
                 <tr>
                     <td>
                         <div class="player-info">
-                            <div style="font-weight:600; color:white;">${p.name || 'Anonymous'}</div>
-                            <div style="font-size:0.75rem; color:#64748b;">${p.email}</div>
+                            <div style="font-weight:600; color:white;">${safeName}</div>
+                            <div style="font-size:0.75rem; color:#64748b;">${safeEmail}</div>
                         </div>
                     </td>
-                    <td><div class="sid-cell" title="${p.id}">${p.id}</div></td>
+                    <td><div class="sid-cell" title="${safeId}">${safeId}</div></td>
                     <td>${new Date(p.created_at).toLocaleString()}</td>
                     <td style="font-weight:700; color:var(--primary);">📧 ${p.sent_emails || 0}</td>
                     <td>
@@ -205,15 +230,15 @@
                     <td>
                         <div style="display:flex; gap:5px; justify-content: flex-end;">
                             ${p.is_banned ? 
-                                `<button onclick="unbanPlayer('${p.id}')" class="btn btn-primary btn-sm">Unban</button>` :
-                                `<button onclick="banPlayer('${p.id}')" class="btn btn-danger btn-sm">Ban</button>`
+                                `<button onclick="unbanPlayer('${jsSafeId}')" class="btn btn-primary btn-sm">Unban</button>` :
+                                `<button onclick="banPlayer('${jsSafeId}')" class="btn btn-danger btn-sm">Ban</button>`
                             }
-                            <button onclick="showMessageModal('${p.id}', '${p.name}')" class="btn btn-ghost btn-sm" style="color:var(--primary); border:1px solid var(--primary)">Msg</button>
-                            <button onclick="deletePlayer('${p.id}')" class="btn btn-ghost btn-danger btn-sm" style="color:var(--danger)">Wipe</button>
+                            <button onclick="showMessageModal('${jsSafeId}', '${jsSafeName}')" class="btn btn-ghost btn-sm" style="color:var(--primary); border:1px solid var(--primary)">Msg</button>
+                            <button onclick="deletePlayer('${jsSafeId}')" class="btn btn-ghost btn-danger btn-sm" style="color:var(--danger)">Wipe</button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         async function banPlayer(sid) {
