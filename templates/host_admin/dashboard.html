@@ -81,6 +81,7 @@
         <nav class="aside-nav">
             <a href="#" class="nav-item active">👥 Player Management</a>
             <a href="#" onclick="showBroadcast()" class="nav-item">📢 Global Broadcast</a>
+            <a href="#" onclick="wipeAllPlayers()" class="nav-item" style="color:var(--danger)">🗑️ Wipe All Players</a>
             <div style="margin-top: 2rem; padding: 0 1rem; font-size: 0.75rem; color: #64748b; text-transform: uppercase;">System</div>
             <a href="/host-management-portal/logout" class="nav-item">🚪 Sign Out</a>
         </nav>
@@ -98,6 +99,10 @@
                     <input type="text" id="playerSearch" oninput="filterPlayers()" placeholder="Search players..." style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:0.6rem 1rem 0.6rem 2.5rem; color:white; width:300px; outline:none; transition:border-color 0.2s;">
                 </div>
                 <button onclick="loadPlayers()" class="btn btn-ghost">🔄 Refresh</button>
+                <button onclick="wipeAllPlayers()" id="wipeAllBtn" class="btn btn-danger" style="display:flex; align-items:center; gap:6px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Wipe All Players
+                </button>
             </div>
         </div>
 
@@ -256,6 +261,42 @@
             if(!confirm(`CRITICAL: This will completely WIPE ALL DATA for player ${sid}. Are you sure?`)) return;
             const r = await fetch(`/api/host/players/${sid}`, { method: 'DELETE' });
             if(r.ok) loadPlayers();
+        }
+
+        async function wipeAllPlayers() {
+            const count = (window.allPlayers || []).length;
+            if (count === 0) {
+                alert("There are no active players to wipe.");
+                return;
+            }
+            if (!confirm(`⚠️ CRITICAL WARNING: You are about to permanently WIPE ALL DATA for ALL ${count} player(s)!\n\nAll sandbox databases, uploaded files, and generated documents will be deleted.\n\nAre you sure you want to proceed?`)) {
+                return;
+            }
+
+            const btn = document.getElementById('wipeAllBtn');
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>⏳</span> Wiping...';
+            }
+
+            try {
+                const r = await fetch('/api/host/players/wipe-all', { method: 'POST' });
+                const d = await r.json();
+                if (r.ok) {
+                    alert(d.message || `Successfully wiped ${count} player(s).`);
+                    loadPlayers();
+                } else {
+                    alert(d.error || "Failed to wipe all players.");
+                }
+            } catch (err) {
+                alert("Network error: " + err);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
         }
 
         function showBroadcast() { document.getElementById('broadcastModal').style.display = 'flex'; }
