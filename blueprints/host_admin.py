@@ -103,15 +103,13 @@ def unban_player(sid):
         return jsonify({"message": f"Player {sid} unbanned."})
     return jsonify({"error": "Ban not found"}), 404
 
-@host_admin_bp.route('/api/host/players/<sid>', methods=['DELETE'])
-@require_host_admin
-def delete_player(sid):
+def _cleanup_single_sandbox(sid):
     # Sanitize sid to prevent path traversal
     sid = os.path.basename(sid)
     path = os.path.abspath(os.path.join(Config.SANDBOX_DIR, sid))
     
     if not path.startswith(os.path.abspath(Config.SANDBOX_DIR)):
-        return jsonify({"error": "Invalid sandbox ID"}), 400
+        return False, "Invalid sandbox ID"
 
     if os.path.exists(path) and os.path.isdir(path):
         try:
@@ -125,23 +123,80 @@ def delete_player(sid):
                             os.remove(global_receipt)
             except: pass # Sandbox might be corrupted or table missing
 
+            # Clean up global store invoices
+            try:
+                sb_invoices_dir = os.path.join(path, 'invoices')
+                if os.path.exists(sb_invoices_dir):
+                    for f in os.listdir(sb_invoices_dir):
+                        global_inv = os.path.join(Config.DOCUMENTS_DIR, 'invoices', f)
+                        if os.path.exists(global_inv):
+                            os.remove(global_inv)
+            except: pass
+
             # 2. Force garbage collection to release file handles
             import gc
             gc.collect() 
             
             # 3. Nuke the main sandbox folder (DB, uploads, private files)
             shutil.rmtree(path)
-            return jsonify({"message": f"Player {sid} data completely wiped."})
+            return True, f"Player {sid} data completely wiped."
         except Exception as e:
             # Fallback: attempt silent deletion
             try:
                 shutil.rmtree(path, ignore_errors=True)
                 if not os.path.exists(path):
-                    return jsonify({"message": f"Player {sid} wiped (with secondary cleanup)."})
+                    return True, f"Player {sid} wiped (with secondary cleanup)."
             except: pass
-            return jsonify({"error": f"Failed to wipe data: {str(e)}"}), 500
+            return False, f"Failed to wipe data: {str(e)}"
             
-    return jsonify({"error": "Player not found"}), 404
+    return False, "Player not found"
+
+@host_admin_bp.route('/api/host/players/<sid>', methods=['DELETE'])
+@require_host_admin
+def delete_player(sid):
+    success, message = _cleanup_single_sandbox(sid)
+    if success:
+        return jsonify({"message": message})
+    if message == "Player not found":
+        return jsonify({"error": message}), 404
+    if message == "Invalid sandbox ID":
+        return jsonify({"error": message}), 400
+    return jsonify({"error": message}), 500
+
+@host_admin_bp.route('/api/host/players', methods=['DELETE'])
+@host_admin_bp.route('/api/host/players/wipe-all', methods=['POST', 'DELETE'])
+@require_host_admin
+def wipe_all_players():
+    if not os.path.exists(Config.SANDBOX_DIR):
+        return jsonify({"message": "No player sandboxes found.", "wiped_count": 0})
+
+    import gc
+    gc.collect()
+
+    wiped_count = 0
+    errors = []
+
+    for sid in os.listdir(Config.SANDBOX_DIR):
+        path = os.path.join(Config.SANDBOX_DIR, sid)
+        if not os.path.isdir(path):
+            continue
+        success, msg = _cleanup_single_sandbox(sid)
+        if success:
+            wiped_count += 1
+        else:
+            errors.append(f"{sid}: {msg}")
+
+    if errors:
+        return jsonify({
+            "message": f"Wiped {wiped_count} player(s) with {len(errors)} error(s).",
+            "wiped_count": wiped_count,
+            "errors": errors
+        }), 207
+
+    return jsonify({
+        "message": f"All {wiped_count} player sandbox(es) wiped successfully.",
+        "wiped_count": wiped_count
+    })
 
 @host_admin_bp.route('/api/host/broadcast', methods=['POST'])
 @require_host_admin
